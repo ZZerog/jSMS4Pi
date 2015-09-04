@@ -35,30 +35,15 @@ import cz.zerog.jsms4pi.exception.GatewayException;
  *
  * @author zerog
  */
-public class Main implements OutboundMessageEventListener, InboundCallEventListener {
+public class Example1 implements OutboundMessageEventListener, InboundCallEventListener {
     
-    /*
-    TODO LIST
+
+    public static void main(String[] args) throws GatewayException {
+        new Example1().start();
+    }
     
-     - programek co automaticky najde modemy pripojene na USB porty
-     - vyresit zmenu konfigurace na zaklade modemu (zda li to vubec bude nutne), ale asi jo, protoze 
-        modemy co mam doted neumeji telefonovat a nektere neumi ani informovat o prozvoneni
-     - otestovat co modem umi .. odeslat a prijmout sam sobe sms, vyzvat na prozvoneni, vyzvat na zavolani
-     - implementovat prijimani SMS
-     - vyresit globalni nastaveni v gateway
-     - zatim nejde nastavit validity period
-     - zatim nejde nastavit delivery report
-     - pridate sendQueue, ktera posle sms hned (neblokuje)
-     - otestovat chybove stavy modemu ... co se stane kdyz modem vytahnu, je mozne aby modem neodpovidal (throw exception)
-     - zjisteni ceny (zbytek kreditu)
-     - pokud neco nejde sparserovat, reagovat na to nejakou normani vyjimkou 
-     - dat doporadku trosku tridy
-    
-    
-    */
     public void start() throws GatewayException {
 
-        System.out.println("AHHHOJ");
         //AtGateway gateway = new AtGateway("/dev/ttyUSB2");
         ATGateway gateway = new ATGateway("/dev/ttyUSB0");
         
@@ -71,35 +56,30 @@ public class Main implements OutboundMessageEventListener, InboundCallEventListe
         //gateway.setGlobalDeliveryReport(true);
         //gateway.setGlobalValidityPeriod(true);
         
-        gateway.setSmsServiceAddress("+420603052000");
-        //gateway.sendSms(new OutboundMessage("Unix time: " + System.currentTimeMillis(), "+17327685861")); //REWI
+        gateway.setSmsServiceAddress("+420603052000"); //CZ T-mobile 
         gateway.sendMessage(new OutboundMessage("Unix time: " + System.currentTimeMillis(), "+420739474009"));
 
         System.console().readLine();
 
         gateway.close();
-        System.out.println("END of Program");        
+        System.out.println("The END");        
     }
 
-    public static void main(String[] args) throws GatewayException {
-        new Main().start();
-        
-    }
 
     @Override
     public void outboundMessageEvent(OutboundMessageEvent event) {
         switch(event.getStatus()) {
             case SENDED_ACK:
-                System.out.println("SMSka do cisla "+event.getMessage().getDestination()+" dosla!");
+                System.out.println("Delivery: "+event.getMessage().getDestination());
                 break;
             case EXPIRED:
-                System.out.println("Nedosla, cislo "+event.getMessage().getDestination()+" nema aktivni telefon");
+                System.out.println("Time expired. "+event.getMessage().getDestination());
                 break;
         }
     }
 
     @Override
     public void inboundCallEvent(CallEvent event) {
-        System.out.println("Volame me cislo "+event.getCallerId());
+        System.out.println("Detected a call: "+event.getCallerId());
     }
 }
