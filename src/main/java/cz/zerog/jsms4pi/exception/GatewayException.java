@@ -32,4 +32,8 @@ public class GatewayException extends Exception {
         super(cause);
     }
     
+    public GatewayException(String message) {
+        super(message);
+    }    
+    
 }

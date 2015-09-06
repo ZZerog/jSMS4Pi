@@ -29,13 +29,26 @@ import java.util.regex.Pattern;
  *
  * @author zerog
  */
-public final class RING extends Notification {
+public final class RING implements Notification {
 
     //RING  +CLIP: "+420739474009",145,,,,0
-    private final Pattern pattern = Pattern.compile("RING\r\n\r\n\\+CLIP: *\"(\\+?\\d+)\",\\d+,.*,.*,.*,(\\d+)");
+    private final static Pattern pattern = Pattern.compile("RING\r\n\r\n\\+CLIP: *\"(\\+?\\d+)\",\\d+,.*,.*,.*,(\\d+)");
+    
 
-    private Validity validity;
-    private String callerId;
+    private final Validity validity;
+    private final String callerId;
+    private final String response;
+
+    private RING(Matcher matcher, String response) {
+        callerId = matcher.group(1);
+        validity = Validity.valueOf(Integer.parseInt(matcher.group(2)));
+        this.response = response;
+    }
+
+    @Override
+    public String getResponse() {
+        return response;
+    }
 
     public enum Validity {
 
@@ -69,15 +82,12 @@ public final class RING extends Notification {
         }
     }
 
-    @Override
-    protected void parse(String notication) {
-        Matcher matcher = pattern.matcher(notication);
-        if (matcher.find()) {
-            callerId = matcher.group(1);
-            validity = Validity.valueOf(Integer.parseInt(matcher.group(2)));
-        } else {
-            throw new RuntimeException("Cannot parse!. Input: '"+notication+"'");
-        }
+    public static RING tryParse(String notification) {
+        Matcher matcher = pattern.matcher(notification);
+        if (matcher.matches()) {
+            return new RING(matcher,notification);
+        } 
+        return null;
     }
 
     public Validity getValidity() {
@@ -87,5 +97,4 @@ public final class RING extends Notification {
     public String getCallerId() {
         return callerId;
     }
-
 }

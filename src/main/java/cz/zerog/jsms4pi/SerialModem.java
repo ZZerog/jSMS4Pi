@@ -25,9 +25,10 @@ package cz.zerog.jsms4pi;
 
 import cz.zerog.jsms4pi.at.AAT;
 import cz.zerog.jsms4pi.exception.ModemException;
-import cz.zerog.jsms4pi.notification.CDSI;
+import cz.zerog.jsms4pi.notification.CLIPN;
 import cz.zerog.jsms4pi.notification.Notification;
 import cz.zerog.jsms4pi.notification.RING;
+import cz.zerog.jsms4pi.notification.UnknownNotifications;
 import java.util.Queue;
 import java.util.concurrent.LinkedBlockingQueue;
 import jssc.SerialPort;
@@ -61,7 +62,7 @@ public class SerialModem extends Thread implements Modem, SerialPortEventListene
 
     /*
      Object which waiting for part of response
-     Notification or AAT
+     Notification or AT
      */
     private ATResponse atResponse = null;
 
@@ -86,7 +87,7 @@ public class SerialModem extends Thread implements Modem, SerialPortEventListene
             serialPort.setParams(speed, 8, 1, SerialPort.PARITY_NONE);
             serialPort.setEventsMask(SerialPort.MASK_RXCHAR);
             serialPort.addEventListener(this);
-            log.info("Port open '{}'", portName);
+            log.info("Port opened '{}'", portName);
         } catch (SerialPortException ex) {
             throw new ModemException(ex);
         }
@@ -144,13 +145,13 @@ public class SerialModem extends Thread implements Modem, SerialPortEventListene
 
                 switch (mode) {
                     case AT:
-                        if (response == null) {
+                        if (atResponse == null) {
                             //TODO
                             log.warn("In mode AT is atResponse = null");
                             break;                            
                         }
                         synchronized (atResponse) {
-                            if (atResponse.appendResponse(response)) {
+                            if (((AAT)atResponse).appendResponse(response)) {
                                 log.info("Response: [{}]", crrt(atResponse.getResponse()));
                                 atResponse.notify();
                             }
@@ -159,16 +160,7 @@ public class SerialModem extends Thread implements Modem, SerialPortEventListene
                         break;
                     case READY:
 
-                        /*
-                         Create Notification object
-                         */
-                        if (response.contains("CDSI")) {
-                            atResponse = new CDSI();
-                        } else if (response.contains("RING")) {
-                            atResponse = new RING();
-                        } else {
-                            break;
-                        }
+                        atResponse = new UnknownNotifications();
 
                     case NOTIFY:
 
@@ -178,16 +170,32 @@ public class SerialModem extends Thread implements Modem, SerialPortEventListene
                         if (atResponse == null) {
                             //TODO
                             log.warn("In mode NOTIFY is atResponse = null");
-                            break;
+                            return;
                         }
+                        
                         mode = Mode.NOTIFY;
 
                         /*
                          If "response" is complete
                          */
-                        if (atResponse.appendResponse(response)) {
-                            log.info("Notify: [{}]", crrt(response));
-                            notificationQueue.add((Notification) atResponse);
+                        atResponse.appendResponse(response);
+                            
+                        while(((UnknownNotifications)atResponse).hasNextMessage()) {
+                            
+                            String notificationMessage = ((UnknownNotifications)atResponse).getNextMessage();
+                  
+                            Notification notification = findNotification(notificationMessage);
+                            
+                            if(notification==null) {
+                                log.info("Detected unknow notification: [{}]",crrt(notificationMessage));
+                                continue;
+                            } 
+                            
+                            log.info("Detected notification: [{}]", crrt(notification.getResponse()));
+                            notificationQueue.add(notification);
+                        }
+                        
+                        if(((UnknownNotifications)atResponse).isEmpty()) {
                             mode = Mode.READY;
                         }
 
@@ -198,9 +206,20 @@ public class SerialModem extends Thread implements Modem, SerialPortEventListene
             }
         }
     }
+    
+    private Notification findNotification(String notificationMessage) {
+        Notification notification;
+        if((notification = RING.tryParse(notificationMessage))!=null) {
+            return notification;
+        }
+        if((notification = CLIPN.tryParse(notificationMessage))!=null) {
+            return notification;
+        }        
+        return null;
+    }
 
     private String crrt(String input) {
-        return input.replaceAll("\r\n", " ");
+        return input.replaceAll("\r", "").replaceAll("\n", "-");
     }
 
     private enum Mode {

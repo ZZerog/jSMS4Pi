@@ -22,43 +22,11 @@ package cz.zerog.jsms4pi.notification;
  * #L%
  */
 
-import cz.zerog.jsms4pi.ATResponse;
-
 
 /**
  *
  * @author zerog
  */
-public abstract class Notification implements ATResponse {
-
-    protected final StringBuilder response = new StringBuilder();
-    
-    public Notification() {
-        
-    }
-
-    @Override
-    public boolean appendResponse(String partOfResponse) {
-        if (partOfResponse == null) {
-            return false;
-        }
-        response.append(partOfResponse);
-        return isComplete();
-    }
-
-    protected boolean isComplete() {
-        //TODO
-        if (false) {
-            parse(response.toString());
-        }
-        return false;
-    }
-
-    protected abstract void parse(String notification);
-
-    @Override
-    public String getResponse() {
-        return response.toString();
-    }
-
+public interface Notification {
+    public String getResponse();
 }

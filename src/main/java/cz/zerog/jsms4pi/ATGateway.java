@@ -21,8 +21,6 @@ package cz.zerog.jsms4pi;
  * <http://www.gnu.org/licenses/lgpl-3.0.html>.
  * #L%
  */
-
-
 import cz.zerog.jsms4pi.message.OutboundMessage;
 import cz.zerog.jsms4pi.event.CallEvent;
 import cz.zerog.jsms4pi.event.InboundCallEventListener;
@@ -91,10 +89,10 @@ public class ATGateway implements Gateway {
     //Global gateway setting
     private boolean globalDeliveryReport;
     private boolean globalValidityPeriod;
-    
+
     public ATGateway(String portname) {
         this.port = portname;
-    }    
+    }
 
     public void setOutboundMessageEventListener(OutboundMessageEventListener listener) {
         this.smsStatusListener = listener;
@@ -129,11 +127,10 @@ public class ATGateway implements Gateway {
         return port;
     }
 
-
     /**
      * Open gateway
-     * 
-     * @throws GatewayException 
+     *
+     * @throws GatewayException
      */
     @Override
     public void open() throws GatewayException {
@@ -148,8 +145,8 @@ public class ATGateway implements Gateway {
 
     /**
      * Close gateway
-     * 
-     * @throws GatewayException 
+     *
+     * @throws GatewayException
      */
     @Override
     public void close() throws GatewayException {
@@ -162,11 +159,24 @@ public class ATGateway implements Gateway {
         }
     }
 
+    public boolean isServiceAddressSet() throws GatewayException {
+        try {
+            CSCAquestion cscaq = modem.send(new CSCAquestion());
+            if (!cscaq.isStatusOK()) {
+                throw new GatewayException("Cannot test if Service Address is set");
+            }
+            return cscaq.getAddress().length() > 0;
+
+        } catch (ModemException ex) {
+            throw new GatewayException(ex);
+        }
+    }
+
     /**
      * Initialize gateway
-     * 
+     *
      * @return true if the initialization alright
-     * @throws GatewayException 
+     * @throws GatewayException
      */
     @Override
     public boolean init() throws GatewayException {
@@ -185,13 +195,12 @@ public class ATGateway implements Gateway {
 
             //set sms service address
             if (smsServiceAddress == null) {
-                CSCAquestion cscaq = modem.send(new CSCAquestion());
-                if (!cscaq.isStatusOK()) {
-                    return false;
-                }
-                if (cscaq.getAddress().length() <= 0) {
-                    log.warn("Cannot set SMS Service Number. User method setSmsServiceAddress(service_number);");
+                if (!isServiceAddressSet()) {
+                    log.info("Cannot send message before set Service Address!.  User method setSmsServiceAddress(service_number);");
                 } else {
+                    //reset address
+                    CSCAquestion cscaq = modem.send(new CSCAquestion());
+                    smsServiceAddress = cscaq.getAddress();
                     modem.send(new CSCA(cscaq));
                 }
             } else {
@@ -249,9 +258,9 @@ public class ATGateway implements Gateway {
 
     /**
      * Send outbound SMS message.
-     * 
+     *
      * @param message
-     * @throws GatewayException 
+     * @throws GatewayException
      */
     public void sendMessage(OutboundMessage message) throws GatewayException {
         try {
@@ -294,8 +303,9 @@ public class ATGateway implements Gateway {
 
     /**
      * Set SMS service address.
+     *
      * @param address
-     * @throws GatewayException 
+     * @throws GatewayException
      */
     public void setSmsServiceAddress(String address) throws GatewayException {
         Pattern pattern = Pattern.compile("^\\+?[1-9]\\d{1,14}$");
@@ -375,6 +385,11 @@ public class ATGateway implements Gateway {
                 createInboundCallEvent(ring.getCallerId(), ring.getValidity());
                 return;
             }
+            if (notification instanceof CLIPN) {
+                CLIPN ring = (CLIPN) notification;
+                createInboundCallEvent(ring.getCallerId(), RING.Validity.VALID);
+                return;
+            }            
         } catch (ModemException ex) {
             log.warn("Exception while notification process", ex);
         }
@@ -385,7 +400,7 @@ public class ATGateway implements Gateway {
             smsStatusListener.outboundMessageEvent(new OutboundMessageEvent(mess, status));
         }
     }
-    
+
     private void createInboundCallEvent(String callerId, RING.Validity validity) {
         if (callListener != null) {
             callListener.inboundCallEvent(new CallEvent(callerId, validity));
@@ -438,8 +453,8 @@ public class ATGateway implements Gateway {
         }
         return true;
     }
-    
-     /**
+
+    /**
      * Gateway status
      */
     public enum Status {

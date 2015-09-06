@@ -23,16 +23,15 @@ package cz.zerog.jsms4pi.at;
  */
 
 
+import cz.zerog.jsms4pi.ATResponse;
 import cz.zerog.jsms4pi.exception.ATParseException;
-import cz.zerog.jsms4pi.exception.GatewayRuntimeException;
-import cz.zerog.jsms4pi.notification.Notification;
 import java.util.regex.Pattern;
 
 /**
  *
  * @author zerog
  */
-public abstract class AAT extends Notification {
+public abstract class AAT implements ATResponse {
 
     public static final char CR = 0x0d;
     public static final int CTRLZ = 0x1A;
@@ -65,7 +64,6 @@ public abstract class AAT extends Notification {
         status = Status.WAITING;
     }
 
-    @Override
     public boolean appendResponse(String partOfResponse) {
         if (partOfResponse == null) {
             return false;
@@ -85,9 +83,8 @@ public abstract class AAT extends Notification {
         READY, WAITING, OK, ERROR;
     }
 
-    @Override
     protected boolean isComplete() {
-        if (response.indexOf("OK") > 0) {
+        if (response.indexOf("OK\r\n") > 0) {
 
             switch (mode) {
                 case COMMAND:
@@ -127,12 +124,6 @@ public abstract class AAT extends Notification {
         throw new RuntimeException("Not implement");
     }
 
-    
-    @Override
-    @Deprecated
-    final protected void parse(String notification) {
-        throw new GatewayRuntimeException("Use one of parseCommandResult, parseQuestionResult or parseSupportResult");
-    }
 
     @Override
     public String getResponse() {

@@ -22,8 +22,6 @@ package cz.zerog.jsms4pi.notification;
  * #L%
  */
 
-
-import cz.zerog.jsms4pi.at.CPMS.TypeOfMemory;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -31,38 +29,33 @@ import java.util.regex.Pattern;
  *
  * @author zerog
  */
-public final class CDSI implements Notification {
+public final class CLIPN implements Notification {
 
-    private final static Pattern pattern = Pattern.compile("\\+CDSI:( *)\"([A-Z]{2})\",(\\d+)");
-
-    private final TypeOfMemory memory;
-    private final int index;
-    private final String response;
+    //+CLIP: "+420739474009",14
+    private final static Pattern pattern = Pattern.compile("\\+CLIP: *\"(\\+?\\d+)\",(\\d+)");
     
-    public CDSI(Matcher matcher, String response) {
-        memory = TypeOfMemory.valueOf(matcher.group(2));
-        index = Integer.parseInt(matcher.group(3));
+    private final String callerId;
+    private final String response;
+
+    private CLIPN(Matcher matcher, String response) {
+        callerId = matcher.group(1);
         this.response = response;
-    }
-
-    public TypeOfMemory getMemoryType() {
-        return memory;
-    }
-
-    public int getSMSIndex() {
-        return index;
-    }
-
-    public static CDSI tryParse(UnknownNotifications unknownNotification) {
-        Matcher matcher = pattern.matcher(unknownNotification.getResponse());
-        if (matcher.matches()) {
-            return new CDSI(matcher, unknownNotification.getResponse());
-        }
-        return null;
     }
 
     @Override
     public String getResponse() {
         return response;
+    }
+
+    public static CLIPN tryParse(String notification) {
+        Matcher matcher = pattern.matcher(notification);
+        if (matcher.matches()) {
+            return new CLIPN(matcher,notification);
+        } 
+        return null;
+    }
+
+    public String getCallerId() {
+        return callerId;
     }
 }

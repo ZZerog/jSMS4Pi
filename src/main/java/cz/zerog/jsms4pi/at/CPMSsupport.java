@@ -52,7 +52,6 @@ public class CPMSsupport extends AAT {
     @Override
     protected void parseSupportResult(String response) {
         Matcher matcher = pattern.matcher(response);
-        System.out.println("error response: "+response);
         if (matcher.find()) {
             memory1 = getMemoryArr(matcher.group(2));
             memory2 = getMemoryArr(matcher.group(3));
@@ -66,7 +65,6 @@ public class CPMSsupport extends AAT {
         String[] memArr = memory.split(",");
         TypeOfMemory[] tMem = new TypeOfMemory[memArr.length];
         for (int i = 0; i < tMem.length; i++) {
-            System.out.println("mem: "+memArr[i].substring(1, 3));
             tMem[i] = TypeOfMemory.valueOf(memArr[i].substring(1, 3));            
         }
         return tMem;
