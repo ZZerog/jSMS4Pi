@@ -35,7 +35,7 @@ import java.util.regex.Pattern;
  */
 public class CPMSsupport extends AAT {
 
-    private final Pattern pattern = Pattern.compile("CPMS:( *)\\(\\((.*)\\),\\((.*)\\),\\((.*)\\)\\)");
+    private final Pattern pattern = Pattern.compile("CPMS:( *)\\(?\\((.*)\\),\\((.*)\\),\\((.*)\\)\\)?");
 
     private TypeOfMemory[] memory1;
     private TypeOfMemory[] memory2;

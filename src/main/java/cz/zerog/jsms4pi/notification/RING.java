@@ -32,7 +32,7 @@ import java.util.regex.Pattern;
 public final class RING implements Notification {
 
     //RING  +CLIP: "+420739474009",145,,,,0
-    private final static Pattern pattern = Pattern.compile("RING\r\n\r\n\\+CLIP: *\"(\\+?\\d+)\",\\d+,.*,.*,.*,(\\d+)");
+    private final static Pattern pattern = Pattern.compile("\\+CLIP: *\"(\\+?\\d+)\",\\d+,.*,.*,.*,(\\d+)");
     
 
     private final Validity validity;
