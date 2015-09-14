@@ -26,7 +26,8 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 /**
- *
+ * Get Signal Quality
+ * 
  * @author zerog
  */
 public class CSQ extends AAT {
@@ -82,6 +83,6 @@ public class CSQ extends AAT {
         if(raw >= 20) {
             return Condiconal.excellent;
         }
-        return null;
+        throw new IllegalStateException("Illegal signal value.");
     }
 }

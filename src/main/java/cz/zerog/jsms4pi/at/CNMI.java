@@ -23,7 +23,7 @@ package cz.zerog.jsms4pi.at;
  */
 
 /**
- * New Message Indications to TE
+ * Configuration of indications
  *
  * @author zerog
  */

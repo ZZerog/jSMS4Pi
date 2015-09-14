@@ -24,7 +24,6 @@ package cz.zerog.jsms4pi.at;
 
 
 import cz.zerog.jsms4pi.ATResponse;
-import cz.zerog.jsms4pi.exception.ATParseException;
 import java.util.regex.Pattern;
 
 /**
@@ -38,9 +37,7 @@ public abstract class AAT implements ATResponse {
 
     private final Pattern errorPattern = Pattern.compile("CMS:( *)ERROR:( *)(\\d{1,3})");
     
-    public static ATParseException getParseException(String name, String result) {
-        return new ATParseException(name, result);
-    }
+    private RuntimeException e;
 
     protected final StringBuilder response = new StringBuilder();
     protected Status status = Status.READY;
@@ -60,7 +57,7 @@ public abstract class AAT implements ATResponse {
         this(commandName, Mode.COMMAND);
     }
 
-    public void send() {
+    public void setWaitingStatus() {
         status = Status.WAITING;
     }
 
@@ -71,16 +68,13 @@ public abstract class AAT implements ATResponse {
         response.append(partOfResponse);
         return isComplete();
     }
-
-    public enum Mode {
-
-        COMMAND,
-        QUESTION,
-        SUPPORT;
+    
+    public void throwExceptionInMainThread(RuntimeException e) {
+        this.e = e;
     }
-
-    public enum Status {
-        READY, WAITING, OK, ERROR;
+    
+    public RuntimeException getException() {
+        return e;
     }
 
     protected boolean isComplete() {
@@ -94,7 +88,7 @@ public abstract class AAT implements ATResponse {
                     parseQuestionResult(response.toString());
                     break;
                 case SUPPORT:
-                    parseSupportResult(response.toString());
+                    parseSupportResult(response.substring(2, response.indexOf("\r\n",2)));
                     break;
             }
 
@@ -127,10 +121,10 @@ public abstract class AAT implements ATResponse {
 
     @Override
     public String getResponse() {
-        if (status.equals(Status.OK) || status.equals(Status.ERROR)) {
+       // if (status.equals(Status.OK) || status.equals(Status.ERROR)) {
             return response.toString();
-        }
-        throw new RuntimeException("At has no response yed");
+      //  }
+        //throw new RuntimeException("At has no response yed");
     }
 
     public Status getStatus() {
@@ -185,4 +179,17 @@ public abstract class AAT implements ATResponse {
     public String getPrefix() {
         return "AT";
     }
+    
+    public enum Mode {
+        COMMAND,
+        QUESTION,
+        SUPPORT;
+    }
+
+    public enum Status {
+        READY, 
+        WAITING, 
+        OK, 
+        ERROR;
+    }    
 }

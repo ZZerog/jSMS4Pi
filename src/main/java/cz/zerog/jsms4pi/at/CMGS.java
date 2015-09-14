@@ -30,7 +30,8 @@ package cz.zerog.jsms4pi.at;
 import java.util.regex.Pattern;
 
 /**
- *
+ * Send SMS Command in Text Mode
+ * 
  * @author zerog
  */
 public class CMGS extends AAT {

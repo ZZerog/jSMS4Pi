@@ -27,6 +27,10 @@ package cz.zerog.jsms4pi.exception;
  * @author zerog
  */
 public class ModemException extends Exception {
+    
+    public ModemException(String message) {
+        super(message);
+    }
 
     public ModemException(Throwable cause) {
         super(cause);

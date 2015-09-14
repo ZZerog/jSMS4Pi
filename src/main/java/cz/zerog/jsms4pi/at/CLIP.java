@@ -23,7 +23,7 @@ package cz.zerog.jsms4pi.at;
  */
 
 /**
- * Active caller ID while RING
+ * Active caller ID when detect inbound call
  *
  * @author zerog
  */

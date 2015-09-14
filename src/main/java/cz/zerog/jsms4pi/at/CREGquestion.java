@@ -92,7 +92,7 @@ public class CREGquestion extends AAT {
                 case 10 :
                     return CSFB_REAMING;                    
             }
-            return null;
+            throw new IllegalArgumentException("Illegal network status code. Accept 0 to 10 including.");
         }
         
         

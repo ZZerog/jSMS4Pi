@@ -23,7 +23,7 @@ package cz.zerog.jsms4pi.at;
  */
 
 /**
- * Reading Service Center Address
+ * Set SMS configuration
  * 
  * There are four classes of an SMS message. Classes identify the importance of an SMS message and also the location where it must be stored.
 

@@ -209,6 +209,7 @@ public class ATGateway implements Gateway {
 
             //set text mode
             if (!modem.send(new CMGF(CMGF.Mode.TEXT)).isStatusOK()) {
+                log.error("Cannot set 'Text Mode' (AT Command CMGF). Initialization failed.");
                 return false;
             }
 
@@ -221,10 +222,16 @@ public class ATGateway implements Gateway {
                 mem1RW = getPreferedMemoryBySuppored(cpmss.getMemory1());
                 mem2Storege = getPreferedMemoryBySuppored(cpmss.getMemory1());
                 mem3Rec = getPreferedMemoryBySuppored(cpmss.getMemory1());
-            }
 
-            //set stores (for read/write, send, rec)
-            modem.send(new CPMS(mem1RW, mem2Storege, mem3Rec));
+                //set stores (for read/write, send, rec)
+                if(!modem.send(new CPMS(mem1RW, mem2Storege, mem3Rec)).isStatusOK()) {
+                    log.error("Cannot set storages (AT Command CPMS). Initialization failed.");
+                    return false;
+                }
+            } else {
+                log.error("CPMSsupport AT Command failed. Initialization failed.");
+                return false;
+            }
 
             //test for network
             //only for info
@@ -242,11 +249,14 @@ public class ATGateway implements Gateway {
                     CNMI.Mt.NOTIFI_1,
                     CNMI.Bm.NO_CBM_NOTIFI_0,
                     CNMI.Ds.STATUS_REPORT_NOTIFI_IF_STORED_2)).isStatusOK()) {
+                log.error("Cannot set notification policy (AT Command CNMI). Initialization failed.");
                 return false;
             }
 
             //show caller ID when RING notify
-            modem.send(new CLIP(true));
+            if(modem.send(new CLIP(true)).isStatusOK()) {
+                log.warn("Cannot set RING notification. Inbound Call Event  is out of service!");
+            }
 
             status = Status.OPENED_INITIALIZED;
             log.info("Gateway inicialized succesful");
@@ -353,7 +363,7 @@ public class ATGateway implements Gateway {
                 }
                 //delete status repord
                 modem.send(new CMGD(cdsi.getSMSIndex()));
-                //change memory1 back
+                //change back to main memory
                 modem.send(new CPMS(mem1RW));
 
                 for (OutboundMessage outMess : outgoingList) {
@@ -389,7 +399,7 @@ public class ATGateway implements Gateway {
                 CLIPN ring = (CLIPN) notification;
                 createInboundCallEvent(ring.getCallerId(), RING.Validity.VALID);
                 return;
-            }            
+            }
         } catch (ModemException ex) {
             log.warn("Exception while notification process", ex);
         }

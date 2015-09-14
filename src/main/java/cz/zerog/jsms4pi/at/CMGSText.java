@@ -22,6 +22,7 @@ package cz.zerog.jsms4pi.at;
  * #L%
  */
 
+import cz.zerog.jsms4pi.exception.AtParseException;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -34,7 +35,7 @@ public class CMGSText extends AAT {
 
     private final Pattern indexPattern = Pattern.compile("CMGS:( *)(\\d{1,3})");
 
-    private String text;
+    private final String text;
 
     private int index = -1;
 
@@ -44,7 +45,7 @@ public class CMGSText extends AAT {
      * @param mode
      */
     public CMGSText(String text) {
-        super("");
+        super(""); //empty command name (no prefix)
         this.text = text + ((char) AAT.CTRLZ);
     }
 
@@ -65,9 +66,10 @@ public class CMGSText extends AAT {
     @Override
     protected void parseCommandResult(String response) {
         Matcher matcher = indexPattern.matcher(response);
-        if (matcher.find()) {
-            index = Integer.parseInt(matcher.group(2));
+        if (!matcher.matches()) {
+            throwExceptionInMainThread(new AtParseException(response, indexPattern));
         }
+        index = Integer.parseInt(matcher.group(2));
     }
 
     public int getIndex() {

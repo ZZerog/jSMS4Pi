@@ -23,11 +23,12 @@ package cz.zerog.jsms4pi.at;
  */
 
 import cz.zerog.jsms4pi.at.CPMS.TypeOfMemory;
+import cz.zerog.jsms4pi.exception.AtParseException;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 /**
- * Set mode text or pdu
+ * Preferred Message Storage (Support).
  *
  * CPMS=?
  * 
@@ -35,7 +36,7 @@ import java.util.regex.Pattern;
  */
 public class CPMSsupport extends AAT {
 
-    private final Pattern pattern = Pattern.compile("CPMS:( *)\\(?\\((.*)\\),\\((.*)\\),\\((.*)\\)\\)?");
+    private final Pattern pattern = Pattern.compile("\\+CPMS:( *)\\(?\\((.*)\\),\\((.*)\\),\\((.*)\\)\\)?");
 
     private TypeOfMemory[] memory1;
     private TypeOfMemory[] memory2;
@@ -52,12 +53,12 @@ public class CPMSsupport extends AAT {
     @Override
     protected void parseSupportResult(String response) {
         Matcher matcher = pattern.matcher(response);
-        if (matcher.find()) {
+        if (matcher.matches()) {
             memory1 = getMemoryArr(matcher.group(2));
             memory2 = getMemoryArr(matcher.group(3));
             memory3 = getMemoryArr(matcher.group(4));
         } else {
-            System.out.println("error response: "+response);
+            throwExceptionInMainThread(new AtParseException(response, pattern));
         }
     }
     

@@ -23,32 +23,32 @@ package cz.zerog.jsms4pi.at;
  */
 
 /**
- * Set mode text or pdu
- *
+ * Delete a Message
+ * 
  * @author zerog
  */
 public class CMGD extends AAT {
     
     public static final String NAME = "+CMGD";
 
-    private DelMode mode;
+    private DeleteMode mode;
     private int index = 0;
 
     public CMGD(int index) {
-        this(index, DelMode.SINGLE_SMS);
+        this(index, DeleteMode.SINGLE_SMS);
     }    
     
-    public CMGD(DelMode mode) {
+    public CMGD(DeleteMode mode) {
         this(0, mode);
     }
     
-    public CMGD(int index, DelMode mode) {
+    public CMGD(int index, DeleteMode mode) {
         super(NAME);
         this.index = index;
         this.mode = mode;
     }    
 
-    public enum DelMode {
+    public enum DeleteMode {
 
         SINGLE_SMS(0), 
         ALL_REC_READ(1),
@@ -58,7 +58,7 @@ public class CMGD extends AAT {
 
         int code;
 
-        private DelMode(int type) {
+        private DeleteMode(int type) {
             this.code = type;
         }
 
@@ -66,20 +66,20 @@ public class CMGD extends AAT {
             return code;
         }
         
-        public static DelMode valueOf(int code) {
+        public static DeleteMode valueOf(int code) {
             switch (code) {
                 case 0:
-                    return DelMode.SINGLE_SMS;
+                    return SINGLE_SMS;
                 case 1:
-                    return DelMode.ALL_REC_READ;
+                    return ALL_REC_READ;
                 case 2:
-                    return DelMode.ALL_REC_READ_STORED_SEND;
+                    return ALL_REC_READ_STORED_SEND;
                 case 3:
-                    return DelMode.ALL_REC_READ_STORED_UNSEND_STORED_SEND;
+                    return ALL_REC_READ_STORED_UNSEND_STORED_SEND;
                 case 4:
-                    return DelMode.ALL;                    
+                    return ALL;                    
             }
-            return null;
+            throw new IllegalArgumentException("Illegal delete mode code. Accept 0 to 4 including.");
         }
     }
 
@@ -88,7 +88,7 @@ public class CMGD extends AAT {
         return getName()+"="+index+","+mode.getCode() + AAT.CR;
     }
     
-    public DelMode getDelMode() {
+    public DeleteMode getDelMode() {
         return mode;
     }
 

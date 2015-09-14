@@ -23,7 +23,7 @@ package cz.zerog.jsms4pi.at;
  */
 
 /**
- * Set SMS memory
+ * Set memory policy
  *
  * @author zerog
  */

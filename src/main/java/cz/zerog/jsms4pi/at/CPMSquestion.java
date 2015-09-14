@@ -24,12 +24,12 @@ package cz.zerog.jsms4pi.at;
 
 
 import cz.zerog.jsms4pi.at.CPMS.TypeOfMemory;
+import cz.zerog.jsms4pi.exception.AtParseException;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 /**
- * Set mode text or pdu
- *
+ * Preferred Message Storage (Question).
  * CPMS?
  *
  * @author zerog
@@ -56,12 +56,13 @@ public class CPMSquestion extends AAT {
 
     /**
      *
+     * @param response
      */
     @Override
     protected void parseQuestionResult(String response) {
         Matcher matcher = pattern.matcher(response);
-        if (!matcher.find()) {
-            throw AAT.getParseException(CPMS.NAME, response);
+        if (!matcher.matches()) {
+            throwExceptionInMainThread(new AtParseException(response, pattern));
         }
         
         memory1 = TypeOfMemory.valueOf(matcher.group(2));

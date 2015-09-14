@@ -21,9 +21,8 @@ package cz.zerog.jsms4pi.at;
  * <http://www.gnu.org/licenses/lgpl-3.0.html>.
  * #L%
  */
-
-
 import cz.zerog.jsms4pi.at.CSCA.NumberType;
+import cz.zerog.jsms4pi.exception.AtParseException;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -46,10 +45,12 @@ public class CSCAquestion extends AAT {
     @Override
     protected void parseQuestionResult(String response) {
         Matcher matcher = pattern.matcher(response);
-        if (matcher.find()) {
-            address = matcher.group(2);
-            type = NumberType.valueOf(Integer.parseInt(matcher.group(3)));
+        if (matcher.matches()) {
+            throwExceptionInMainThread(new AtParseException(response, pattern));
         }
+        address = matcher.group(2);
+        type = NumberType.valueOf(Integer.parseInt(matcher.group(3)));
+
     }
 
     public String getAddress() {

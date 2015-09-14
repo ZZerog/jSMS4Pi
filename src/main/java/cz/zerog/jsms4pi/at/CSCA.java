@@ -23,7 +23,7 @@ package cz.zerog.jsms4pi.at;
  */
 
 /**
- * Reading Service Center Address
+ * Set Service Center Address
  *
  * @author zerog
  */
@@ -72,7 +72,7 @@ public class CSCA extends AAT {
                 case 145:
                     return NumberType.INTERNACIONAL;
             }
-            return null;
+            throw new IllegalArgumentException("Illegal number type code. Accept code 129 and 145.");
         }
     }
     

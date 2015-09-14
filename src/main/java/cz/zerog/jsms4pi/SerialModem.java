@@ -54,6 +54,7 @@ public class SerialModem extends Thread implements Modem, SerialPortEventListene
     private static String defaultPort = "/dev/ttyUSB2";
     protected SerialPort serialPort;
     private final int speed = SerialPort.BAUDRATE_57600;
+    private final int WAITING_TIME = 500; //ms
 
     /*
      Gateway 
@@ -110,16 +111,22 @@ public class SerialModem extends Thread implements Modem, SerialPortEventListene
         atResponse = (ATResponse) cmd;
         mode = Mode.AT;
 
-        cmd.send();
+        cmd.setWaitingStatus();
         String request = cmd.getPrefix() + cmd.getRequest();
         log.info("Request: {}", crrt(request));
         try {
             serialPort.writeString(request);
             synchronized (cmd) {
-                cmd.wait();
+                cmd.wait(WAITING_TIME);
+            }
+            if(cmd.getException()!=null) {
+                throw cmd.getException(); 
+            }
+            if(cmd.isStatus(AAT.Status.WAITING))  {
+                throw new ModemException("Response time expired");
             }
         } catch (InterruptedException ex) {
-            log.warn("Interuppted while wait for answer");
+            log.warn("Interuppted, while wait for answer");
         } catch (SerialPortException ex) {
             throw new ModemException(ex);
         }
@@ -140,6 +147,8 @@ public class SerialModem extends Thread implements Modem, SerialPortEventListene
         // if received some bytes
         if (event.getEventValue() > 0) {
             try {
+                
+                
                 //read it
                 String response = serialPort.readString();
 
@@ -201,8 +210,9 @@ public class SerialModem extends Thread implements Modem, SerialPortEventListene
 
                         break;
                 }
-            } catch (SerialPortException ex) {
-                log.warn(ex,ex);
+                
+            } catch (Exception ex) {
+                log.error(ex,ex);
             }
         }
     }

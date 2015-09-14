@@ -22,13 +22,14 @@ package cz.zerog.jsms4pi.at;
  * #L%
  */
 
+import cz.zerog.jsms4pi.exception.AtParseException;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 /**
- * Set mode text or pdu
+ * Read an SMS Message or Status
  *
  * CPMS?
  *
@@ -70,8 +71,8 @@ public class CMGR extends AAT {
     @Override
     protected void parseCommandResult(String response) {
         Matcher matcher = pattern.matcher(response);
-        if (!matcher.find()) {
-            throw AAT.getParseException(NAME, response);
+        if (!matcher.matches()) {
+            throwExceptionInMainThread(new AtParseException(response, pattern));
         }
         stat = matcher.group(1);
         fo = Integer.parseInt(matcher.group(2));

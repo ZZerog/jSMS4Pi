@@ -42,24 +42,29 @@ public class InboundCallExample implements InboundCallEventListener {
         String port = Tool.selectionPort(reader);
 
         System.out.println("Summary: ");
-        System.out.println("Serial port: "+port);
-        
+        System.out.println("Serial port: " + port);
+
         Tool.enter(reader);
-        
+
         new InboundCallExample(port, reader);
     }
-    
+
     public InboundCallExample(String port, BufferedReader reader) throws GatewayException, IOException {
         ATGateway gateway = new ATGateway(port);
-        
-        gateway.setInboundCallListener(this);
 
-        gateway.open();
-        gateway.init(); 
-        
+        try {
+            gateway.setInboundCallListener(this);
+
+            gateway.open();
+            gateway.init();
+        } catch (Exception e) {          
+            gateway.close();
+            throw e;
+        }
+
         System.out.print("Now try call me.  Enter key exits program.");
         reader.readLine();
-        
+
         gateway.close();
     }
 

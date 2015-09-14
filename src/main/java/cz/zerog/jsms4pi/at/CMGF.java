@@ -23,7 +23,7 @@ package cz.zerog.jsms4pi.at;
  */
 
 /**
- * Set mode text or pdu
+ * Set text mode or PDU mode
  *
  * @author zerog
  */
@@ -63,7 +63,7 @@ public class CMGF extends AAT {
                 case 1:
                     return Mode.TEXT;
             }
-            return null;
+            throw new IllegalStateException("Illegal mode. Accept 0 to 1 including.");
         }
     }
 
