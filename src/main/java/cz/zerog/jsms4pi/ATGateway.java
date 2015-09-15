@@ -102,21 +102,13 @@ public class ATGateway implements Gateway {
         this.callListener = callListener;
     }
 
-    /**
-     * Active or deactive delivery report for all outbound message.
-     *
-     * @param b
-     */
+    @Override
     public void setGlobalDeliveryReport(boolean b) {
         //TODO implemt me
         throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
     }
 
-    /**
-     * Active or deactive validity period for all outbound message.
-     *
-     * @param b
-     */
+    @Override
     public void setGlobalValidityPeriod(boolean b) {
         //TODO implemt me
         throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.

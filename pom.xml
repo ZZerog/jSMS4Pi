@@ -16,6 +16,15 @@
         </developer>
     </developers>	
     
+    <!-- LICENSE -->
+    <licenses>
+        <license>
+            <name>GNU General Lesser Public License (LGPL) version 3.0</name>
+            <url>http://www.gnu.org/licenses/lgpl.txt</url>
+            <distribution>repo</distribution>
+        </license>
+    </licenses>    
+    
     <organization>
         <name>jSMS4Pi</name>
     </organization>
@@ -56,7 +65,19 @@
     </properties>
     
     <!-- BUILD INSTRUCTIONS -->
-    <build>
+    <build>       
+        
+        <!-- GLOBAL PROJECT RESOURCES -->
+        <resources>
+            <resource>
+                <directory>${basedir}</directory>
+                <filtering>false</filtering>
+                <includes>
+                    <include>README.md</include>
+                </includes>
+            </resource>
+        </resources>
+        
         <plugins>
             <!--
             Copy dependecies into lib
@@ -128,9 +149,54 @@
                         </configuration>
                     </execution>
                 </executions>
-            </plugin>    
+            </plugin>  
+            <!--
+            Site plugin
+            -->
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-site-plugin</artifactId>
+                <version>3.0</version>
+                <executions>
+                    <execution>
+                        <id>attach-descriptor</id>
+                        <goals>
+                            <goal>attach-descriptor</goal>
+                        </goals>
+                    </execution>
+                </executions>                   
+                <configuration>
+                    <reportPlugins>
+ 
+                        <plugin>
+                            <groupId>org.apache.maven.plugins</groupId>
+                            <artifactId>maven-javadoc-plugin</artifactId>
+                            <version>2.10.3</version>
+                            <configuration>
+                                <failOnError>false</failOnError>
+                            </configuration>
+                        </plugin>                        
+                        <plugin>
+                            <groupId>org.apache.maven.plugins</groupId>
+                            <artifactId>maven-project-info-reports-plugin</artifactId>
+                            <version>2.4</version>
+                            <reportSets>
+                                <reportSet>
+                                    <reports>
+                                        <report>dependencies</report>
+                                        <report>project-team</report>
+                                        <report>license</report>
+                                        <report>issue-tracking</report>
+                                    </reports>
+                                </reportSet>
+                            </reportSets>                               
+                        </plugin>                       
+                    </reportPlugins>
+                </configuration> 
+            </plugin>                
         </plugins>
     </build>
+   
     
     
     <!-- BUILD PROFILES -->
