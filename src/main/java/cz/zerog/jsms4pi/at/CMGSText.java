@@ -33,7 +33,7 @@ import java.util.regex.Pattern;
  */
 public class CMGSText extends AAT {
 
-    private final Pattern indexPattern = Pattern.compile("CMGS:( *)(\\d{1,3})");
+    private final Pattern indexPattern = Pattern.compile("\\s*\\+CMGS:( *)(\\d{1,3})\\s*");
 
     private final String text;
 
@@ -68,6 +68,7 @@ public class CMGSText extends AAT {
         Matcher matcher = indexPattern.matcher(response);
         if (!matcher.matches()) {
             throwExceptionInMainThread(new AtParseException(response, indexPattern));
+            return;
         }
         index = Integer.parseInt(matcher.group(2));
     }

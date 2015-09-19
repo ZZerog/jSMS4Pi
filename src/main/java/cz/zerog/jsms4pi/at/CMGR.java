@@ -37,7 +37,7 @@ import java.util.regex.Pattern;
  */
 public class CMGR extends AAT {
 
-    private final Pattern pattern = Pattern.compile("\\+CMGR:( *[a-zA-Z]*),(\\d+),(\\d+),\\\"(\\+?\\d+)\\\",(\\d*),\\\"(\\d{2}/\\d{2}/\\d{2},\\d{2}:\\d{2}:\\d{2}\\+?-?\\d{2})\\\",\\\"(\\d{2}/\\d{2}/\\d{2},\\d{2}:\\d{2}:\\d{2}\\+?-?\\d{2})\\\",(\\d+)");
+    private final Pattern pattern = Pattern.compile("\\+CMGR:( *[a-zA-Z]*),(\\d+),(\\d+),\\\"(\\+?\\d+)\\\",(\\d*),\\\"(\\d{2}/\\d{2}/\\d{2},\\d{2}:\\d{2}:\\d{2}\\+?-?\\d{2})\\\",\\\"(\\d{2}/\\d{2}/\\d{2},\\d{2}:\\d{2}:\\d{2}\\+?-?\\d{2})\\\",(\\d+)\\s*");
 
     private final DateTimeFormatter timeFormat = DateTimeFormatter.ofPattern("yy/MM/dd,HH:mm:ssx");
 
@@ -73,6 +73,7 @@ public class CMGR extends AAT {
         Matcher matcher = pattern.matcher(response);
         if (!matcher.matches()) {
             throwExceptionInMainThread(new AtParseException(response, pattern));
+            return;
         }
         stat = matcher.group(1);
         fo = Integer.parseInt(matcher.group(2));

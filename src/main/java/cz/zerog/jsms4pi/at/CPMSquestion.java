@@ -36,7 +36,7 @@ import java.util.regex.Pattern;
  */
 public class CPMSquestion extends AAT {
 
-    private final Pattern pattern = Pattern.compile("CPMS:( *)\"([A-Z]{2})\",(\\d+),(\\d+),\"([A-Z]{2})\",(\\d+),(\\d+),\"([A-Z]{2})\",(\\d+),(\\d+)");
+    private final Pattern pattern = Pattern.compile("CPMS:( *)\"([A-Z]{2})\",(\\d+),(\\d+),\"([A-Z]{2})\",(\\d+),(\\d+),\"([A-Z]{2})\",(\\d+),(\\d+)\\s*");
 
     private TypeOfMemory memory1;
     private TypeOfMemory memory2;
@@ -63,6 +63,7 @@ public class CPMSquestion extends AAT {
         Matcher matcher = pattern.matcher(response);
         if (!matcher.matches()) {
             throwExceptionInMainThread(new AtParseException(response, pattern));
+            return;
         }
         
         memory1 = TypeOfMemory.valueOf(matcher.group(2));

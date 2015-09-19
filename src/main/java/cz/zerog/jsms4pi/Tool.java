@@ -38,7 +38,7 @@ public class Tool {
         String[] portNames = SerialPortList.getPortNames();
 
         if (portNames.length == 0) {
-            System.out.println("No serial port avaible! Exit.");
+            System.out.println("No serial port avaible or you do not have permission!");
             return null;
         }
 

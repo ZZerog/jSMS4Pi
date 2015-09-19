@@ -21,9 +21,8 @@ package cz.zerog.jsms4pi.at;
  * <http://www.gnu.org/licenses/lgpl-3.0.html>.
  * #L%
  */
-
-
 import cz.zerog.jsms4pi.ATResponse;
+import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 /**
@@ -34,20 +33,22 @@ public abstract class AAT implements ATResponse {
 
     public static final char CR = 0x0d;
     public static final int CTRLZ = 0x1A;
+    private final String OK_SEQUENCE = "OK\r\n";
 
-    private final Pattern errorPattern = Pattern.compile("CMS:( *)ERROR:( *)(\\d{1,3})");
-    
+    private final Pattern cmsErrorPattern = Pattern.compile("\\s*\\+CMS: *ERROR: *(\\d{1,3})\\s*");
+
     private RuntimeException e;
 
     protected final StringBuilder response = new StringBuilder();
     protected Status status = Status.READY;
     private Mode mode;
-    private int cmsError = -1;
+    private int cmsErrorCode = -1;
 
     private String name;
-    
-    private AAT() {};
 
+    private AAT() {
+    }
+    
     public AAT(String commandName, Mode mode) {
         this.name = commandName;
         this.mode = mode;
@@ -68,27 +69,31 @@ public abstract class AAT implements ATResponse {
         response.append(partOfResponse);
         return isComplete();
     }
-    
+
     public void throwExceptionInMainThread(RuntimeException e) {
         this.e = e;
     }
-    
+
     public RuntimeException getException() {
         return e;
     }
 
+    private String parseOkResponse(String response) {
+        return response.substring(2, response.indexOf(OK_SEQUENCE, 2));
+    }
+
     protected boolean isComplete() {
-        if (response.indexOf("OK\r\n") > 0) {
+        if (response.indexOf(OK_SEQUENCE) > 0) {
 
             switch (mode) {
                 case COMMAND:
-                    parseCommandResult(response.toString());
+                    parseCommandResult(parseOkResponse(response.toString()));
                     break;
                 case QUESTION:
-                    parseQuestionResult(response.toString());
+                    parseQuestionResult(parseOkResponse(response.toString()));
                     break;
                 case SUPPORT:
-                    parseSupportResult(response.substring(2, response.indexOf("\r\n",2)));
+                    parseSupportResult(parseOkResponse(response.toString()));
                     break;
             }
 
@@ -97,17 +102,27 @@ public abstract class AAT implements ATResponse {
         }
         if (response.indexOf("ERROR") > 0) {
             status = Status.ERROR;
+            
+            Matcher matcher = cmsErrorPattern.matcher(response);
+            if (matcher.matches()) {
+                cmsErrorCode = Integer.parseInt(matcher.group(2));
+            }
             return true;
         }
         return false;
     }
+    
+    public int getCmsErrorCode() {
+        return cmsErrorCode;
+    }
 
     /**
      * Parse additional OK result.
+     *
      * @param response
      */
     protected void parseCommandResult(String response) {
-        
+
     }
 
     protected void parseQuestionResult(String response) {
@@ -118,27 +133,25 @@ public abstract class AAT implements ATResponse {
         throw new RuntimeException("Not implement");
     }
 
-
     @Override
     public String getResponse() {
-       // if (status.equals(Status.OK) || status.equals(Status.ERROR)) {
-            return response.toString();
-      //  }
+        // if (status.equals(Status.OK) || status.equals(Status.ERROR)) {
+        return response.toString();
+        //  }
         //throw new RuntimeException("At has no response yed");
     }
 
     public Status getStatus() {
         return status;
     }
-    
+
     public boolean isStatus(Status status) {
         return getStatus().equals(status);
     }
-    
+
     public boolean isStatusOK() {
         return isStatus(Status.OK);
     }
-    
 
     public String getRequest() {
         switch (mode) {
@@ -171,25 +184,28 @@ public abstract class AAT implements ATResponse {
     public Mode getMode() {
         return mode;
     }
-    
-    public int getCMSErrorCode() {
-        return cmsError;
-    }
-    
+
     public String getPrefix() {
         return "AT";
     }
-    
+
+    public static String crrt(String input) {
+        return input.replaceAll("\r", "").replaceAll("\n", "-");
+    }
+
     public enum Mode {
+
         COMMAND,
         QUESTION,
         SUPPORT;
     }
 
     public enum Status {
-        READY, 
-        WAITING, 
-        OK, 
+
+        READY,
+        WAITING,
+        OK,
         ERROR;
-    }    
+    }
+
 }

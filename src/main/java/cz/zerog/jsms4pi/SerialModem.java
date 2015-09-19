@@ -25,10 +25,13 @@ package cz.zerog.jsms4pi;
 
 import cz.zerog.jsms4pi.at.AAT;
 import cz.zerog.jsms4pi.exception.ModemException;
+import cz.zerog.jsms4pi.notification.CDSI;
 import cz.zerog.jsms4pi.notification.CLIPN;
 import cz.zerog.jsms4pi.notification.Notification;
 import cz.zerog.jsms4pi.notification.RING;
 import cz.zerog.jsms4pi.notification.UnknownNotifications;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Queue;
 import java.util.concurrent.LinkedBlockingQueue;
 import jssc.SerialPort;
@@ -54,7 +57,7 @@ public class SerialModem extends Thread implements Modem, SerialPortEventListene
     private static String defaultPort = "/dev/ttyUSB2";
     protected SerialPort serialPort;
     private final int speed = SerialPort.BAUDRATE_57600;
-    private final int WAITING_TIME = 500; //ms
+    private final int WAITING_TIME = 5 * 1000; //ms
 
     /*
      Gateway 
@@ -172,15 +175,6 @@ public class SerialModem extends Thread implements Modem, SerialPortEventListene
                         atResponse = new UnknownNotifications();
 
                     case NOTIFY:
-
-                        /*
-                         If notifi. exist
-                         */
-                        if (atResponse == null) {
-                            //TODO
-                            log.warn("In mode NOTIFY is atResponse = null");
-                            return;
-                        }
                         
                         mode = Mode.NOTIFY;
 
@@ -189,6 +183,7 @@ public class SerialModem extends Thread implements Modem, SerialPortEventListene
                          */
                         atResponse.appendResponse(response);
                             
+                        List<Notification> internalQueue = new ArrayList();
                         while(((UnknownNotifications)atResponse).hasNextMessage()) {
                             
                             String notificationMessage = ((UnknownNotifications)atResponse).getNextMessage();
@@ -201,11 +196,13 @@ public class SerialModem extends Thread implements Modem, SerialPortEventListene
                             } 
                             
                             log.info("Detected notification: [{}]", crrt(notification.getResponse()));
-                            notificationQueue.add(notification);
+                            internalQueue.add(notification);                            
                         }
                         
                         if(((UnknownNotifications)atResponse).isEmpty()) {
                             mode = Mode.READY;
+                            notificationQueue.addAll(internalQueue);
+                            internalQueue.clear();
                         }
 
                         break;
@@ -219,12 +216,18 @@ public class SerialModem extends Thread implements Modem, SerialPortEventListene
     
     private Notification findNotification(String notificationMessage) {
         Notification notification;
+        
         if((notification = RING.tryParse(notificationMessage))!=null) {
             return notification;
         }
+        
         if((notification = CLIPN.tryParse(notificationMessage))!=null) {
             return notification;
         }        
+        
+        if((notification = CDSI.tryParse(notificationMessage))!=null) {
+            return notification;
+        }                
         return null;
     }
 

@@ -28,7 +28,8 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 /**
- *
+ * SMS status notification
+ * 
  * @author zerog
  */
 public final class CDSI implements Notification {
@@ -53,10 +54,10 @@ public final class CDSI implements Notification {
         return index;
     }
 
-    public static CDSI tryParse(UnknownNotifications unknownNotification) {
-        Matcher matcher = pattern.matcher(unknownNotification.getResponse());
+    public static CDSI tryParse(String notification) {
+        Matcher matcher = pattern.matcher(notification);
         if (matcher.matches()) {
-            return new CDSI(matcher, unknownNotification.getResponse());
+            return new CDSI(matcher, notification);
         }
         return null;
     }

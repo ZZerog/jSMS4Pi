@@ -346,12 +346,16 @@ public class ATGateway implements Gateway {
                 CDSI cdsi = (CDSI) notification;
 
                 modem.send(new AT());
-                //change read memory (memory1)
+                //change to memory from CDSI notification
                 modem.send(new CPMS(cdsi.getMemoryType()));
                 //read status repord
                 CMGR cmgr = modem.send(new CMGR(cdsi.getSMSIndex()));
                 if (!cmgr.isStatusOK()) {
-                    throw new RuntimeException("Cannot read sms status by index: " + cdsi.getSMSIndex());
+                    int eCode = cmgr.getCmsErrorCode();
+                    if(eCode>0) {
+                        cmgr.throwExceptionInMainThread(new RuntimeException("Cannot read sms status by index ("+eCode+"): " + cdsi.getSMSIndex()));
+                        return;
+                    }                    
                 }
                 //delete status repord
                 modem.send(new CMGD(cdsi.getSMSIndex()));

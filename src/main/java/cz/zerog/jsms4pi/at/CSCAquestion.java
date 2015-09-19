@@ -36,7 +36,7 @@ public class CSCAquestion extends AAT {
     private NumberType type;
     private String address = "";
 
-    private final Pattern pattern = Pattern.compile("\\+CSCA:( *)\"(.*)\",(145|129)");
+    private final Pattern pattern = Pattern.compile("\\+CSCA:( *)\"(.*)\",(145|129|)\\s*");
 
     public CSCAquestion() {
         super(CSCA.NAME, Mode.QUESTION);
@@ -45,11 +45,15 @@ public class CSCAquestion extends AAT {
     @Override
     protected void parseQuestionResult(String response) {
         Matcher matcher = pattern.matcher(response);
-        if (matcher.matches()) {
+        if (!matcher.matches()) {
             throwExceptionInMainThread(new AtParseException(response, pattern));
+            return;
         }
         address = matcher.group(2);
-        type = NumberType.valueOf(Integer.parseInt(matcher.group(3)));
+        String sType = matcher.group(3);
+        if(!sType.trim().equals("")) {
+            type = NumberType.valueOf(Integer.parseInt(sType));
+        }
 
     }
 

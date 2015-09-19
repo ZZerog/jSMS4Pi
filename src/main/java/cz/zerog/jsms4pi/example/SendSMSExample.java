@@ -42,29 +42,91 @@ public class SendSMSExample implements OutboundMessageEventListener, InboundCall
     public static void main(String[] args) throws GatewayException, IOException {
         BufferedReader reader = new BufferedReader(new InputStreamReader(System.in));
 
-        String port = Tool.selectionPort(reader);
-        String number;
-        String text;
+        String port = null;
+        String number = null;
+        String text = null;
+        String servise = null;
 
-        System.out.println("Write destination phone number: ");
-        number = reader.readLine();
+        if (args.length > 0) {
 
-        System.out.println("Write text of message: ");
-        text = reader.readLine();
+            if (args.length % 2 != 0 && args.length > 1) {
+                System.out.println("Wrong count of argument.");
+                printHelp();
+                System.exit(0);
+            }
+
+            for (int i = 0; i < args.length; i++) {
+                String identifier = args[i];
+
+                switch (identifier) {
+                    case "-p":
+                        i++;
+                        port = args[i];
+                        break;
+                    case "-d":
+                        i++;
+                        number = args[i];
+                        break;
+                    case "-m":
+                        i++;
+                        text = args[i];
+                        break;
+                    case "-s":
+                        i++;
+                        servise = args[i];
+                        break;
+                    case "-h":
+                    case "-help":
+                        printHelp();
+                        System.exit(0);
+                        break;
+                    default:
+                        System.out.println("Unknow parametr " + args[i]);
+                        printHelp();
+                        System.exit(0);
+                }
+            }
+        }
+
+        if (port == null) {
+            port = Tool.selectionPort(reader);
+        }
+        
+        if(port == null) {
+            System.exit(0);
+        }
+
+        if (number == null) {
+            System.out.println("Write destination phone number: ");
+            number = reader.readLine();
+        }
+
+        if (text == null) {
+            System.out.println("Write text of message: ");
+            text = reader.readLine();
+        }
 
         System.out.println("\n\n\nSummary: ");
-        System.out.println("Destination phone number: "+number);
-        System.out.println("Message text: "+text);
-        System.out.println("Serial port: "+port);
-        
+        System.out.println("Destination phone number: " + number);
+        System.out.println("Message text: " + text);
+        System.out.println("Serial port: " + port);
+        if(servise!=null) {
+            System.out.println("SMS servise number: "+servise);
+        }
+
         Tool.enter(reader);
-        
+
         OutboundMessage message = new OutboundMessage(text, number);
-        
-        new SendSMSExample().send(port, message, reader);
+
+        new SendSMSExample().send(port, message, reader, servise);
     }
 
-    public void send(String port, OutboundMessage message, BufferedReader reader) throws GatewayException, IOException {
+    private static void printHelp() {
+        //TODO 
+        System.out.println("Info");
+    }
+
+    public void send(String port, OutboundMessage message, BufferedReader reader, String servise) throws GatewayException, IOException {
 
         ATGateway gateway = new ATGateway(port);
 
@@ -73,10 +135,14 @@ public class SendSMSExample implements OutboundMessageEventListener, InboundCall
 
         gateway.open();
         gateway.init();
-        
-        if(!gateway.isServiceAddressSet()) {
-            System.out.println("Please, write phone number of SMS Service Address: ");
-            gateway.setSmsServiceAddress(reader.readLine());
+
+        if (servise == null) {
+            if (!gateway.isServiceAddressSet()) {
+                System.out.println("Please, write phone number of SMS Service Address: ");
+                gateway.setSmsServiceAddress(reader.readLine());
+            }
+        } else {
+            gateway.setSmsServiceAddress(servise);
         }
 
         gateway.sendMessage(message);

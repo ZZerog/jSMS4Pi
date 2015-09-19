@@ -39,7 +39,45 @@ public class InboundCallExample implements InboundCallEventListener {
     public static void main(String[] args) throws GatewayException, IOException {
         BufferedReader reader = new BufferedReader(new InputStreamReader(System.in));
 
-        String port = Tool.selectionPort(reader);
+        String port = null;
+        
+        if(args.length > 0) {
+            for (int i = 0; i < args.length; i++) {
+                String identifier = args[i];
+                
+                switch(identifier) {
+                    case "-p" :
+                        if(i+1 < args.length) {
+                            i++;
+                            port = args[i];
+                        } else {
+                            System.out.println("Wrong count of argument.");
+                            printHelp();
+                            System.exit(0);
+                        }
+                        break;
+                    case "-h" :
+                    case "-help" :
+                        printHelp();
+                        System.exit(0);
+                        break;
+                    default:
+                        System.out.println("Unknow parametr "+args[i]);
+                        printHelp();
+                        System.exit(0);
+                }                
+            }
+        }
+        
+        
+        
+        if(port==null) {
+            port = Tool.selectionPort(reader);
+        }
+        
+        if(port == null) {
+            System.exit(0);
+        }
 
         System.out.println("Summary: ");
         System.out.println("Serial port: " + port);
@@ -47,6 +85,11 @@ public class InboundCallExample implements InboundCallEventListener {
         Tool.enter(reader);
 
         new InboundCallExample(port, reader);
+    }
+
+    private static void printHelp() {
+        //TODO
+        System.out.println("Informace -p je port");
     }
 
     public InboundCallExample(String port, BufferedReader reader) throws GatewayException, IOException {

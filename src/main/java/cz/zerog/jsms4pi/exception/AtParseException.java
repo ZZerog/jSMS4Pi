@@ -1,5 +1,6 @@
 package cz.zerog.jsms4pi.exception;
 
+import cz.zerog.jsms4pi.at.AAT;
 import java.util.regex.Pattern;
 import java.util.regex.PatternSyntaxException;
 
@@ -51,12 +52,14 @@ public class AtParseException extends IllegalArgumentException {
         sb.append(index);
         sb.append(System.lineSeparator());
         sb.append(descR);
-        sb.append(response);
+        sb.append('[');
+        sb.append(AAT.crrt(response));
+        sb.append(']');
         sb.append(System.lineSeparator());
         sb.append(descP);
         sb.append(pattern);
         sb.append(System.lineSeparator());
-        for (int i = 0; i < index+descP.length(); i++) {
+        for (int i = 1; i < index+descP.length(); i++) {
             sb.append(' ');
         }
         sb.append('^');
@@ -74,6 +77,9 @@ public class AtParseException extends IllegalArgumentException {
 
             while (true) {
                 try {
+                    if(pIndex>pattern.length()) {
+                        return pattern.length();
+                    }
                     String pat = pattern.substring(0, pIndex);
                     patt = Pattern.compile(pat);
                 } catch (PatternSyntaxException e) {
@@ -83,7 +89,7 @@ public class AtParseException extends IllegalArgumentException {
                 break;
             }
 
-            for (int i = 1; i <= response.length(); i++) {
+            for (int i = 1; i < response.length(); i++) {
                 String newLine = response.substring(0, i);
                 if (patt.matcher(newLine).matches()) {
                     match = true;

@@ -70,10 +70,10 @@
         <!-- GLOBAL PROJECT RESOURCES -->
         <resources>
             <resource>
-                <directory>${basedir}</directory>
+                <directory>${basedir}/src/main/resources</directory>
                 <filtering>false</filtering>
                 <includes>
-                    <include>README.md</include>
+                    <include>log4j2.xml</include>
                 </includes>
             </resource>
         </resources>
