@@ -62,6 +62,7 @@ public abstract class AAT implements ATResponse {
         status = Status.WAITING;
     }
 
+    @Override
     public boolean appendResponse(String partOfResponse) {
         if (partOfResponse == null) {
             return false;
@@ -191,6 +192,10 @@ public abstract class AAT implements ATResponse {
 
     public static String crrt(String input) {
         return input.replaceAll("\r", "").replaceAll("\n", "-");
+    }
+    
+    public static String deleteCrrt(String input) {
+        return input.replaceAll("\r\n", "");
     }
 
     public enum Mode {

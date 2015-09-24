@@ -1,4 +1,4 @@
-package cz.zerog.jsms4pi.message;
+package cz.zerog.jsms4pi.event;
 
 /*
  * #%L
@@ -21,49 +21,13 @@ package cz.zerog.jsms4pi.message;
  * <http://www.gnu.org/licenses/lgpl-3.0.html>.
  * #L%
  */
+
 /**
  *
  * @author zerog
  */
-public class Message {
+public interface InboundMessageEventListener {
 
-
-    private final String text;
-
-    private MessageTypes type;
-
-    private int textLength = 0;
-
-    /**
-     * Enumeration representing the different types of messages.
-     */
-    public enum MessageTypes {
-
-        /**
-         * Inbound message.
-         */
-        INBOUND,
-        /**
-         * Outbound message.
-         */
-        OUTBOUND
-    }
-
-    public Message(MessageTypes type, String text) {
-        this.type = type;
-        this.text = text;
-    }
-
-    public String getText() {
-        return text;
-    }
-
-    public MessageTypes getType() {
-        return type;
-    }
-
-    public int getTextLength() {
-        return textLength;
-    }
-
+    public void inboundMessageEvent(InboundMessageEvent inboundMessageEvent);
+    
 }

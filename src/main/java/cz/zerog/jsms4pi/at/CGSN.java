@@ -1,4 +1,4 @@
-package cz.zerog.jsms4pi.message;
+package cz.zerog.jsms4pi.at;
 
 /*
  * #%L
@@ -21,49 +21,28 @@ package cz.zerog.jsms4pi.message;
  * <http://www.gnu.org/licenses/lgpl-3.0.html>.
  * #L%
  */
+
 /**
+ * Get the IMEI of the phone
  *
  * @author zerog
  */
-public class Message {
+public class CGSN extends AAT {
 
+    public static final String NAME = "+CGSN";
 
-    private final String text;
+    private String imei;
 
-    private MessageTypes type;
-
-    private int textLength = 0;
-
-    /**
-     * Enumeration representing the different types of messages.
-     */
-    public enum MessageTypes {
-
-        /**
-         * Inbound message.
-         */
-        INBOUND,
-        /**
-         * Outbound message.
-         */
-        OUTBOUND
+    public CGSN() {
+        super(NAME);
     }
 
-    public Message(MessageTypes type, String text) {
-        this.type = type;
-        this.text = text;
+    @Override
+    protected void parseCommandResult(String response) {
+        imei = AAT.deleteCrrt(response);
     }
 
-    public String getText() {
-        return text;
+    public String getModelInfo() {
+        return imei;
     }
-
-    public MessageTypes getType() {
-        return type;
-    }
-
-    public int getTextLength() {
-        return textLength;
-    }
-
 }

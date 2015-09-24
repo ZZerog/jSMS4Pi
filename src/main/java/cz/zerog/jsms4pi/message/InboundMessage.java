@@ -21,49 +21,22 @@ package cz.zerog.jsms4pi.message;
  * <http://www.gnu.org/licenses/lgpl-3.0.html>.
  * #L%
  */
+
 /**
  *
  * @author zerog
  */
-public class Message {
+public class InboundMessage extends Message {
+    
 
-
-    private final String text;
-
-    private MessageTypes type;
-
-    private int textLength = 0;
-
-    /**
-     * Enumeration representing the different types of messages.
-     */
-    public enum MessageTypes {
-
-        /**
-         * Inbound message.
-         */
-        INBOUND,
-        /**
-         * Outbound message.
-         */
-        OUTBOUND
+    private final String source;
+    
+    public InboundMessage(String text, String source) {
+        super(MessageTypes.INBOUND, text);
+        this.source = source;
     }
 
-    public Message(MessageTypes type, String text) {
-        this.type = type;
-        this.text = text;
-    }
-
-    public String getText() {
-        return text;
-    }
-
-    public MessageTypes getType() {
-        return type;
-    }
-
-    public int getTextLength() {
-        return textLength;
-    }
-
+    public String getSource() {
+        return source;
+    }   
 }

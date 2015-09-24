@@ -1,4 +1,9 @@
-package cz.zerog.jsms4pi.message;
+/*
+ * To change this license header, choose License Headers in Project Properties.
+ * To change this template file, choose Tools | Templates
+ * and open the template in the editor.
+ */
+package cz.zerog.jsms4pi.at;
 
 /*
  * #%L
@@ -21,49 +26,25 @@ package cz.zerog.jsms4pi.message;
  * <http://www.gnu.org/licenses/lgpl-3.0.html>.
  * #L%
  */
+
 /**
  *
  * @author zerog
  */
-public class Message {
+public class CUSD extends AAT {
 
-
-    private final String text;
-
-    private MessageTypes type;
-
-    private int textLength = 0;
-
-    /**
-     * Enumeration representing the different types of messages.
-     */
-    public enum MessageTypes {
-
-        /**
-         * Inbound message.
-         */
-        INBOUND,
-        /**
-         * Outbound message.
-         */
-        OUTBOUND
+    private final static String NAME = "+CUSD";
+    
+    private int dest;
+    
+    public CUSD(int dest) {
+        super(NAME);
+        this.dest = dest;
     }
-
-    public Message(MessageTypes type, String text) {
-        this.type = type;
-        this.text = text;
-    }
-
-    public String getText() {
-        return text;
-    }
-
-    public MessageTypes getType() {
-        return type;
-    }
-
-    public int getTextLength() {
-        return textLength;
-    }
-
+    
+    @Override
+    public String getCommandRequest() {
+        return getName() + "=1,\"*101#\"," +dest+ AAT.CR;
+    }     
+    
 }

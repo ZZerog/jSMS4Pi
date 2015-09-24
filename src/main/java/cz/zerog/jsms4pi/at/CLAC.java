@@ -1,4 +1,4 @@
-package cz.zerog.jsms4pi.message;
+package cz.zerog.jsms4pi.at;
 
 /*
  * #%L
@@ -21,49 +21,33 @@ package cz.zerog.jsms4pi.message;
  * <http://www.gnu.org/licenses/lgpl-3.0.html>.
  * #L%
  */
+
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.List;
+
 /**
- *
+ * Lists AT commands that the phone supports.
+ * 
  * @author zerog
  */
-public class Message {
+public class CLAC extends AAT {
 
+    public static final String NAME = "+CLAC";
 
-    private final String text;
+    private List<String> atList ;
 
-    private MessageTypes type;
-
-    private int textLength = 0;
-
-    /**
-     * Enumeration representing the different types of messages.
-     */
-    public enum MessageTypes {
-
-        /**
-         * Inbound message.
-         */
-        INBOUND,
-        /**
-         * Outbound message.
-         */
-        OUTBOUND
+    public CLAC() {
+        super(NAME);
     }
 
-    public Message(MessageTypes type, String text) {
-        this.type = type;
-        this.text = text;
+    @Override
+    protected void parseCommandResult(String response) {
+        String[] list = response.split("\r\n");
+        atList = Arrays.asList(list);
     }
 
-    public String getText() {
-        return text;
-    }
-
-    public MessageTypes getType() {
-        return type;
-    }
-
-    public int getTextLength() {
-        return textLength;
-    }
-
+    public List getSupportedList() {
+        return Collections.unmodifiableList(atList);
+    }    
 }

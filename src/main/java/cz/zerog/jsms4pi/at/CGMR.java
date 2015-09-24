@@ -1,4 +1,4 @@
-package cz.zerog.jsms4pi.message;
+package cz.zerog.jsms4pi.at;
 
 /*
  * #%L
@@ -21,49 +21,28 @@ package cz.zerog.jsms4pi.message;
  * <http://www.gnu.org/licenses/lgpl-3.0.html>.
  * #L%
  */
+
 /**
- *
+ * Returns the manufacturer’s OS revision
+ * 
  * @author zerog
  */
-public class Message {
+public class CGMR extends AAT {
+    
+    public static final String NAME = "+CGMR";
+    
+    private String osRevision;
 
-
-    private final String text;
-
-    private MessageTypes type;
-
-    private int textLength = 0;
-
-    /**
-     * Enumeration representing the different types of messages.
-     */
-    public enum MessageTypes {
-
-        /**
-         * Inbound message.
-         */
-        INBOUND,
-        /**
-         * Outbound message.
-         */
-        OUTBOUND
+    public CGMR() {
+        super(NAME);
+    }
+    
+        @Override
+    protected void parseCommandResult(String response) {
+        osRevision = AAT.deleteCrrt(response);
     }
 
-    public Message(MessageTypes type, String text) {
-        this.type = type;
-        this.text = text;
-    }
-
-    public String getText() {
-        return text;
-    }
-
-    public MessageTypes getType() {
-        return type;
-    }
-
-    public int getTextLength() {
-        return textLength;
-    }
-
+    public String getModelInfo() {
+        return osRevision;
+    }   
 }

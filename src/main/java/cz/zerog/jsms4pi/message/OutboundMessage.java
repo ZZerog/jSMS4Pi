@@ -31,6 +31,7 @@ public class OutboundMessage extends Message {
     private Status status = Status.NOT_SEND;
     
     private int index;
+    private final String destination;
     
     private boolean deliveryReport;
     private boolean validityPeriod;
@@ -40,7 +41,8 @@ public class OutboundMessage extends Message {
     }
     
     public OutboundMessage(String text, String destination, boolean deliveryReport, boolean validityPeriod) {
-        super(MessageTypes.OUTBOUND, text, destination);
+        super(MessageTypes.OUTBOUND, text);
+        this.destination = destination;
         this.deliveryReport = deliveryReport;
         this.validityPeriod = validityPeriod;
     }    
@@ -81,6 +83,8 @@ public class OutboundMessage extends Message {
     public boolean isValidityPeriod() {
         return validityPeriod;
     }
-    
-    
+
+    public String getDestination() {
+        return destination;
+    }
 }

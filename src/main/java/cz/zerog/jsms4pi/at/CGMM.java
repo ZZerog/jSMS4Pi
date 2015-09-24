@@ -1,4 +1,4 @@
-package cz.zerog.jsms4pi.message;
+package cz.zerog.jsms4pi.at;
 
 /*
  * #%L
@@ -21,49 +21,28 @@ package cz.zerog.jsms4pi.message;
  * <http://www.gnu.org/licenses/lgpl-3.0.html>.
  * #L%
  */
+
 /**
- *
+ * Returns the make, model and capabilities of the phones.
+ * 
  * @author zerog
  */
-public class Message {
+public class CGMM extends AAT {
+    
+    public static final String NAME = "+CGMM";
+    
+    private String modelInfo;
 
-
-    private final String text;
-
-    private MessageTypes type;
-
-    private int textLength = 0;
-
-    /**
-     * Enumeration representing the different types of messages.
-     */
-    public enum MessageTypes {
-
-        /**
-         * Inbound message.
-         */
-        INBOUND,
-        /**
-         * Outbound message.
-         */
-        OUTBOUND
+    public CGMM() {
+        super(NAME);
+    }
+    
+        @Override
+    protected void parseCommandResult(String response) {
+        modelInfo = AAT.deleteCrrt(response);
     }
 
-    public Message(MessageTypes type, String text) {
-        this.type = type;
-        this.text = text;
-    }
-
-    public String getText() {
-        return text;
-    }
-
-    public MessageTypes getType() {
-        return type;
-    }
-
-    public int getTextLength() {
-        return textLength;
-    }
-
+    public String getModelInfo() {
+        return modelInfo;
+    }   
 }
