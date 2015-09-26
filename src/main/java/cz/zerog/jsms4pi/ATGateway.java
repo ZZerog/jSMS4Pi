@@ -1,4 +1,4 @@
-package cz.zerog.jsms4pi;
+    package cz.zerog.jsms4pi;
 
 /*
  * #%L
@@ -28,7 +28,7 @@ import cz.zerog.jsms4pi.event.OutboundMessageEvent;
 import cz.zerog.jsms4pi.event.OutboundMessageEventListener;
 import cz.zerog.jsms4pi.at.*;
 import cz.zerog.jsms4pi.notification.*;
-import cz.zerog.jsms4pi.at.CPMS.TypeOfMemory;
+import cz.zerog.jsms4pi.tool.TypeOfMemory;
 import cz.zerog.jsms4pi.event.InboundMessageEvent;
 import cz.zerog.jsms4pi.event.InboundMessageEventListener;
 import cz.zerog.jsms4pi.exception.GatewayException;
@@ -253,10 +253,13 @@ public class ATGateway implements Gateway {
 
             //set notification to PC
             if (!modem.send(new CNMI(
-                    CNMI.Mode._2,
-                    CNMI.Mt.NOTIFI_1,
+                    //CNMI.Mode._2,
+                    CNMI.Mode._1,
+                    //CNMI.Mt.NOTIFI_1,
+                    CNMI.Mt.DIRECT_NOTIFI_BESIDES_CLASS2_2,
                     CNMI.Bm.NO_CBM_NOTIFI_0,
-                    CNMI.Ds.STATUS_REPORT_NOTIFI_IF_STORED_2)).isStatusOK()) {
+                    //CNMI.Ds.STATUS_REPORT_NOTIFI_IF_STORED_2)).isStatusOK()) {
+                    CNMI.Ds.STATUS_REPORT_NOTIFI_1)).isStatusOK()) {
                 log.error("Cannot set notification policy (AT Command CNMI). Initialization failed.");
                 return false;
             }

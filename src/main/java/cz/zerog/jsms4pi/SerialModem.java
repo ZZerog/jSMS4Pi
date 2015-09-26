@@ -27,6 +27,7 @@ import cz.zerog.jsms4pi.at.AAT;
 import cz.zerog.jsms4pi.exception.ModemException;
 import cz.zerog.jsms4pi.notification.CDSI;
 import cz.zerog.jsms4pi.notification.CLIPN;
+import cz.zerog.jsms4pi.notification.CMT;
 import cz.zerog.jsms4pi.notification.CMTI;
 import cz.zerog.jsms4pi.notification.Notification;
 import cz.zerog.jsms4pi.notification.RING;
@@ -189,7 +190,7 @@ public class SerialModem extends Thread implements Modem, SerialPortEventListene
                             
                             String notificationMessage = ((UnknownNotifications)atResponse).getNextMessage();
                   
-                            Notification notification = findNotification(notificationMessage);
+                            Notification notification = findNotification(notificationMessage, (UnknownNotifications) atResponse);
                             
                             if(notification==null) {
                                 log.info("Detected unknow notification: [{}]",crrt(notificationMessage));
@@ -215,7 +216,7 @@ public class SerialModem extends Thread implements Modem, SerialPortEventListene
         }
     }
     
-    private Notification findNotification(String notificationMessage) {
+    private Notification findNotification(String notificationMessage, UnknownNotifications notifications) {
         Notification notification;
         
         if((notification = RING.tryParse(notificationMessage))!=null) {
@@ -233,6 +234,10 @@ public class SerialModem extends Thread implements Modem, SerialPortEventListene
         if((notification = CMTI.tryParse(notificationMessage))!=null) {
             return notification;
         }        
+        
+        if((notification = CMT.tryParse(notificationMessage,notifications))!=null) {
+            return notification;
+        }                
         return null;
     }
 

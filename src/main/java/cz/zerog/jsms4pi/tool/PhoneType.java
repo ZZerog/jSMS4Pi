@@ -1,4 +1,4 @@
-package cz.zerog.jsms4pi.at;
+package cz.zerog.jsms4pi.tool;
 
 /*
  * #%L
@@ -22,32 +22,30 @@ package cz.zerog.jsms4pi.at;
  * #L%
  */
 
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.List;
-
 /**
- * Lists AT commands that the phone supports.
- * 
+ *
  * @author zerog
  */
-public class CLAC extends AAT {
+public enum PhoneType {
 
-    public static final String NAME = "+CLAC";
+    TELEPHONE_N_P(129),//telephone numering plan
+    PRIVATE_N_P(145);//private numering plan
 
-    private List<String> atList ;
+    private final int number;
 
-    public CLAC() {
-        super(NAME);
+    private PhoneType(int number) {
+        this.number = number;
     }
-
-    @Override
-    protected void parseCommandResult(String response) {
-        String[] list = response.split("\r\n");
-        atList = Arrays.asList(list);
+    
+    public static PhoneType valueOf(int number) {
+        switch(number) {
+            case 129: return TELEPHONE_N_P;
+            case 145: return PRIVATE_N_P;   
+        }
+        throw new IllegalArgumentException("Now are supported only 129 and 145 phones type");
     }
-
-    public List<String> getSupportedCommandList() {
-        return Collections.unmodifiableList(atList);
-    }    
+    
+    public int getNumber() {
+        return number;
+    }
 }

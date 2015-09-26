@@ -27,8 +27,6 @@ package cz.zerog.jsms4pi.at;
  * #L%
  */
 
-import java.util.regex.Pattern;
-
 /**
  * Send SMS Command in Text Mode
  * 
@@ -39,9 +37,6 @@ public class CMGS extends AAT {
     public static String NAME = "+CMGS";
 
     private final String destination;
-    private int errotCode = -1;
-
-    private Pattern errorPattern = Pattern.compile("CMS:( *)ERROR:( *)(\\d{1,3})");
 
     public CMGS(String destinationNumber) {
         super(NAME);
@@ -53,19 +48,16 @@ public class CMGS extends AAT {
         return getName() + "=\"" + destination + "\"" + AAT.CR;
     }
 
-//    public int getErrorCode() {
-//        Matcher matcher = errorPattern.matcher(getResponse());
-//        if (matcher.find()) {
-//            throw AAT.getParseException(NAME, getResponse());
-//        }
-//        return Integer.parseInt(matcher.group(3));
-//    }
-
     @Override
     protected boolean isComplete() {
-        if (response.indexOf(">") >= 0 || response.indexOf("ERROR") > 0) {
+        if (response.indexOf(">") >= 0 ) {
             status = Status.OK;
             return true;
+        } 
+        if (response.indexOf("ERROR") > 0) {
+            parseCMS(response);
+            status = Status.ERROR;
+            return true;            
         }
         return false;
     }

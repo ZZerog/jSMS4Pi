@@ -48,7 +48,7 @@ public abstract class AAT implements ATResponse {
 
     private AAT() {
     }
-    
+
     public AAT(String commandName, Mode mode) {
         this.name = commandName;
         this.mode = mode;
@@ -103,16 +103,19 @@ public abstract class AAT implements ATResponse {
         }
         if (response.indexOf("ERROR") > 0) {
             status = Status.ERROR;
-            
-            Matcher matcher = cmsErrorPattern.matcher(response);
-            if (matcher.matches()) {
-                cmsErrorCode = Integer.parseInt(matcher.group(2));
-            }
+            parseCMS(response);
             return true;
         }
         return false;
     }
-    
+
+    protected void parseCMS(StringBuilder response) {
+        Matcher matcher = cmsErrorPattern.matcher(response);
+        if (matcher.matches()) {
+            cmsErrorCode = Integer.parseInt(matcher.group(1));
+        }
+    }
+
     public int getCmsErrorCode() {
         return cmsErrorCode;
     }
@@ -193,7 +196,7 @@ public abstract class AAT implements ATResponse {
     public static String crrt(String input) {
         return input.replaceAll("\r", "").replaceAll("\n", "-");
     }
-    
+
     public static String deleteCrrt(String input) {
         return input.replaceAll("\r\n", "");
     }

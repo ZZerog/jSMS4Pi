@@ -1,4 +1,4 @@
-package cz.zerog.jsms4pi.at;
+package cz.zerog.jsms4pi.tool;
 
 /*
  * #%L
@@ -22,32 +22,16 @@ package cz.zerog.jsms4pi.at;
  * #L%
  */
 
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.List;
-
 /**
- * Lists AT commands that the phone supports.
- * 
+ * Type Of Memory
  * @author zerog
  */
-public class CLAC extends AAT {
+public enum TypeOfMemory {
 
-    public static final String NAME = "+CLAC";
-
-    private List<String> atList ;
-
-    public CLAC() {
-        super(NAME);
-    }
-
-    @Override
-    protected void parseCommandResult(String response) {
-        String[] list = response.split("\r\n");
-        atList = Arrays.asList(list);
-    }
-
-    public List<String> getSupportedCommandList() {
-        return Collections.unmodifiableList(atList);
-    }    
+    SM, //sim card memory
+    ME, //modem memory
+    MT, //sim card + modem memory
+    BM, //broadcast message
+    SR, //status report (delivery status)
+    TA; //termina adaptor memory
 }

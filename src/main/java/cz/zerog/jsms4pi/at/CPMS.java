@@ -1,5 +1,7 @@
 package cz.zerog.jsms4pi.at;
 
+import cz.zerog.jsms4pi.tool.TypeOfMemory;
+
 /*
  * #%L
  * jSMS4Pi
@@ -80,15 +82,7 @@ public class CPMS extends AAT {
         this(mem1, mem2, null);
     }
 
-    public enum TypeOfMemory {
 
-        SM, //sim card memory
-        ME, //modem memory
-        MT, //sim card + modem memory
-        BM, //broadcast message
-        SR, //status report (delivery status)
-        TA; //termina adaptor memory
-    }
 
     @Override
     public String getCommandRequest() {

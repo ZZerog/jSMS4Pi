@@ -23,7 +23,7 @@ package cz.zerog.jsms4pi.at;
  */
 
 /**
- *
+ * Do nothing only return OK 
  * @author zerog
  */
 public class AT extends AAT {

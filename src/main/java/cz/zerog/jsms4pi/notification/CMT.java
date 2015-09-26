@@ -24,26 +24,27 @@ package cz.zerog.jsms4pi.notification;
 
 
 import cz.zerog.jsms4pi.tool.TypeOfMemory;
+import static cz.zerog.jsms4pi.tool.PatternTool.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 /**
- * SMS delivery status
+ * SMS status notification
  * 
  * @author zerog
  */
-public final class CMTI implements Notification {
+public final class CMT implements Notification {
 
-    private final static Pattern pattern = Pattern.compile("\\+CMTI: *\"([A-Z]{2})\",(\\d+)");
+    private final static Pattern pattern = Pattern.compile(build("\\+CMT: *\"({})\",({})",MEMORY,NUMBER));
 
     private final TypeOfMemory memory;
     private final int index;
     private final String response;
     
-    public CMTI(Matcher matcher, String response) {
+    public CMT(Matcher matcher, String response, String text) {
         memory = TypeOfMemory.valueOf(matcher.group(1));
         index = Integer.parseInt(matcher.group(2));
-        this.response = response;
+        this.response = response+"\r\n"+text;
     }
 
     public TypeOfMemory getMemoryType() {
@@ -54,10 +55,10 @@ public final class CMTI implements Notification {
         return index;
     }
 
-    public static CMTI tryParse(String notification) {
+    public static CMT tryParse(String notification, UnknownNotifications notifications) {
         Matcher matcher = pattern.matcher(notification);
         if (matcher.matches()) {
-            return new CMTI(matcher, notification);
+            return new CMT(matcher, notification, notifications.getNextMessage());
         }
         return null;
     }

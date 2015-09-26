@@ -23,7 +23,7 @@ package cz.zerog.jsms4pi.notification;
  */
 
 
-import cz.zerog.jsms4pi.at.CPMS.TypeOfMemory;
+import cz.zerog.jsms4pi.tool.TypeOfMemory;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 

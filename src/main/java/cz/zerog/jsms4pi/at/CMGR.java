@@ -22,8 +22,8 @@ package cz.zerog.jsms4pi.at;
  * #L%
  */
 import cz.zerog.jsms4pi.exception.AtParseException;
+import static cz.zerog.jsms4pi.tool.PatternTool.*;
 import java.time.LocalDateTime;
-import java.time.format.DateTimeFormatter;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -36,14 +36,29 @@ import java.util.regex.Pattern;
  */
 public class CMGR extends AAT {
 
-    private final Pattern patternStatusReport = Pattern.compile("\\+CMGR: *([a-zA-Z]*),(\\d+),(\\d+),\\\"(\\+?\\d+)\\\",(\\d*),\\\"(\\d{2}/\\d{2}/\\d{2},\\d{2}:\\d{2}:\\d{2}\\+?-?\\d{2})\\\",\\\"(\\d{2}/\\d{2}/\\d{2},\\d{2}:\\d{2}:\\d{2}\\+?-?\\d{2})\\\",(\\d+)\\s*");
-    private final Pattern patternSmsDelivery = Pattern.compile("\\+CMGR: *\\\"([A-Z_ ]*)\\\",\\\"(\\+?\\d+)\\\",(.*),\\\"(\\d{2}/\\d{2}/\\d{2},\\d{2}:\\d{2}:\\d{2}\\+?-?\\d{2})\\\"\\r\\n(.*)\\s*");
+    private final Pattern patternStatusReport = Pattern.compile(build("\\+CMGR: *({}),({}),({}),\"({})\",({}),\"({})\",\"({})\",(\\d+)\\s*",
+                                                            STAT,         //stat
+                                                            NUMBER,       //fo
+                                                            NUMBER,       //mr  
+                                                            PHONE_NUMBER, //ra
+                                                            PHONE_TYPE,   //tora
+                                                            TIME_STAMP,   //scts
+                                                            TIME_STAMP,   //dt
+                                                            NUMBER));     //st
+    private final Pattern patternSmsDelivery = Pattern.compile(build("\\+CMGR: *\"({})\",\"({})\",({}),\"({})\"{}({})\\s*",
+                                                            STAT,         //stat
+                                                            PHONE_NUMBER, //oa
+                                                            WHATEVER,     //alpha
+                                                            TIME_STAMP,   //scts
+                                                            CR_LF,
+                                                            WHATEVER      //data
+                                                            ));
 
-    private final DateTimeFormatter timeFormat = DateTimeFormatter.ofPattern("yy/MM/dd,HH:mm:ssx");
+    
 
     public static final String NAME = "+CMGR";
 
-    private Mode mode;
+    private final Mode mode;
 
     private final int index;
 
@@ -94,8 +109,8 @@ public class CMGR extends AAT {
                 mr = Integer.parseInt(matcher.group(3));
                 ra = matcher.group(4);
                 tora = Integer.parseInt(matcher.group(5));
-                scts = LocalDateTime.parse(matcher.group(6), timeFormat);
-                dt = LocalDateTime.parse(matcher.group(7), timeFormat);
+                scts = LocalDateTime.parse(matcher.group(6), TIME_STAMP_FORMATTER);
+                dt = LocalDateTime.parse(matcher.group(7), TIME_STAMP_FORMATTER);
                 code = Integer.parseInt(matcher.group(8));
                 break;
             case SMS_DELIVERY:
@@ -107,7 +122,7 @@ public class CMGR extends AAT {
                 stat = matcher.group(1);
                 oa = matcher.group(2);
                 alpha = matcher.group(3);
-                scts = LocalDateTime.parse(matcher.group(4), timeFormat);
+                scts = LocalDateTime.parse(matcher.group(4), TIME_STAMP_FORMATTER);
                 text = matcher.group(5);
                 break;
         }
@@ -121,10 +136,6 @@ public class CMGR extends AAT {
                 return patternStatusReport;
         }
         return null;
-    }
-
-    public DateTimeFormatter getTimeFormat() {
-        return timeFormat;
     }
 
     public int getIndex() {

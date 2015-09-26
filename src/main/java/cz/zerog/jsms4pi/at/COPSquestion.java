@@ -21,7 +21,7 @@ package cz.zerog.jsms4pi.at;
  * <http://www.gnu.org/licenses/lgpl-3.0.html>.
  * #L%
  */
-import cz.zerog.jsms4pi.at.CSCA.NumberType;
+import static cz.zerog.jsms4pi.tool.PatternTool.*;
 import cz.zerog.jsms4pi.exception.AtParseException;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -33,12 +33,14 @@ import java.util.regex.Pattern;
  */
 public class COPSquestion extends AAT {
 
-    private NumberType type;
-    private String address = "";
+    private int mode;
+    private int format;
+    private String oper;
+    private int act;
     
     private static String NAME = "COPS";
 
-    private final Pattern pattern = Pattern.compile("\\+CSCA:( *)\"(.*)\",(145|129|)\\s*");
+    private final Pattern pattern = Pattern.compile(build("\\+COPS: *({}),({}),\"({})\",({})\\s*",NUMBER,NUMBER,WHATEVER,NUMBER));
 
     public COPSquestion() {
         super(NAME, Mode.QUESTION);
@@ -51,19 +53,26 @@ public class COPSquestion extends AAT {
             throwExceptionInMainThread(new AtParseException(response, pattern));
             return;
         }
-        address = matcher.group(2);
-        String sType = matcher.group(3);
-        if(!sType.trim().equals("")) {
-            type = NumberType.valueOf(Integer.parseInt(sType));
-        }
+        mode = Integer.parseInt(matcher.group(1));
+        format = Integer.parseInt(matcher.group(2));
+        oper = matcher.group(3);
+        act = Integer.parseInt(matcher.group(4));
 
     }
 
-    public String getAddress() {
-        return address;
+    public int getMod() {
+        return mode;
     }
 
-    public NumberType getType() {
-        return type;
+    public int getFormat() {
+        return format;
+    }
+
+    public String getOperatorName() {
+        return oper;
+    }
+
+    public int getAct() {
+        return act;
     }
 }

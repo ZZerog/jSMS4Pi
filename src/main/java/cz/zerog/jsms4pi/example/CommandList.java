@@ -1,4 +1,4 @@
-package cz.zerog.jsms4pi.at;
+package cz.zerog.jsms4pi.example;
 
 /*
  * #%L
@@ -21,33 +21,26 @@ package cz.zerog.jsms4pi.at;
  * <http://www.gnu.org/licenses/lgpl-3.0.html>.
  * #L%
  */
-
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.List;
+import cz.zerog.jsms4pi.ATGateway;
+import cz.zerog.jsms4pi.at.CLAC;
+import cz.zerog.jsms4pi.exception.GatewayException;
+import cz.zerog.jsms4pi.exception.ModemException;
 
 /**
- * Lists AT commands that the phone supports.
- * 
+ *
  * @author zerog
  */
-public class CLAC extends AAT {
+public class CommandList {
 
-    public static final String NAME = "+CLAC";
-
-    private List<String> atList ;
-
-    public CLAC() {
-        super(NAME);
+    public static void main(String[] args) throws ModemException, GatewayException, InterruptedException {
+        ATGateway gateway = new ATGateway("/dev/ttyUSB5");
+        gateway.open();
+        
+        for(String cmd : gateway.directSendAtCommand(new CLAC()).getSupportedCommandList()) {
+            System.out.println(cmd);
+        }
+        
+        gateway.close();
     }
 
-    @Override
-    protected void parseCommandResult(String response) {
-        String[] list = response.split("\r\n");
-        atList = Arrays.asList(list);
-    }
-
-    public List<String> getSupportedCommandList() {
-        return Collections.unmodifiableList(atList);
-    }    
 }

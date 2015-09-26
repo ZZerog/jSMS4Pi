@@ -22,27 +22,29 @@ package cz.zerog.jsms4pi.at;
  * #L%
  */
 
+
+
 /**
  * Returns the make, model and capabilities of the phones.
- * 
+ *
  * @author zerog
  */
 public class CGMM extends AAT {
-    
+
     public static final String NAME = "+CGMM";
-    
+
     private String modelInfo;
 
     public CGMM() {
         super(NAME);
     }
-    
-        @Override
+
+    @Override
     protected void parseCommandResult(String response) {
         modelInfo = AAT.deleteCrrt(response);
     }
 
     public String getModelInfo() {
         return modelInfo;
-    }   
+    }
 }

@@ -22,7 +22,7 @@ package cz.zerog.jsms4pi.at;
  * #L%
  */
 
-import cz.zerog.jsms4pi.at.CPMS.TypeOfMemory;
+import cz.zerog.jsms4pi.tool.TypeOfMemory;
 import cz.zerog.jsms4pi.exception.AtParseException;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
