@@ -68,16 +68,18 @@
     <build>       
         
         <!-- GLOBAL PROJECT RESOURCES -->
+        <!--
         <resources>
             <resource>
                 <directory>${basedir}/src/main/resources</directory>
                 <filtering>false</filtering>
                 <includes>
                     <include>log4j2.xml</include>
+                    <include>default.properties</include>
                 </includes>
             </resource>
         </resources>
-        
+        -->
         <plugins>
             <!--
             Copy dependecies into lib

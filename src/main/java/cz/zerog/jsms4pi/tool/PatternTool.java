@@ -42,7 +42,7 @@ public class PatternTool {
     
     public static final String PHONE_TYPE = "145|129";
     
-    public static final String TIME_STAMP = "\"\\d{2}/\\d{2}/\\d{2},\\d{2}:\\d{2}:\\d{2}[\\+\\-]\\d{2}\"";
+    public static final String TIME_STAMP = "\\d{2}/\\d{2}/\\d{2},\\d{2}:\\d{2}:\\d{2}[\\+\\-]\\d{2}";
     
     public static final String STAT = "REC UNREAD|REC READ|STO UNSENT|STO SENT|ALL";
     

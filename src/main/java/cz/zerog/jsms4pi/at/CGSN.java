@@ -42,7 +42,7 @@ public class CGSN extends AAT {
         imei = AAT.deleteCrrt(response);
     }
 
-    public String getModelInfo() {
+    public String getIMEI() {
         return imei;
     }
 }

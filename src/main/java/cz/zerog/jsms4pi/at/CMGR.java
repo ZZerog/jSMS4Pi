@@ -23,6 +23,7 @@ package cz.zerog.jsms4pi.at;
  */
 import cz.zerog.jsms4pi.exception.AtParseException;
 import static cz.zerog.jsms4pi.tool.PatternTool.*;
+import cz.zerog.jsms4pi.tool.SPStatus;
 import java.time.LocalDateTime;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -37,7 +38,7 @@ import java.util.regex.Pattern;
 public class CMGR extends AAT {
 
     private final Pattern patternStatusReport = Pattern.compile(build("\\+CMGR: *({}),({}),({}),\"({})\",({}),\"({})\",\"({})\",(\\d+)\\s*",
-                                                            STAT,         //stat
+                                                            WHATEVER,     //stat (some modems return empty)
                                                             NUMBER,       //fo
                                                             NUMBER,       //mr  
                                                             PHONE_NUMBER, //ra
@@ -69,7 +70,7 @@ public class CMGR extends AAT {
     private int tora = -1;
     private LocalDateTime scts;
     private LocalDateTime dt;
-    private int code = -1;
+    private SPStatus sp;
     private String text;
 
     /*
@@ -111,7 +112,7 @@ public class CMGR extends AAT {
                 tora = Integer.parseInt(matcher.group(5));
                 scts = LocalDateTime.parse(matcher.group(6), TIME_STAMP_FORMATTER);
                 dt = LocalDateTime.parse(matcher.group(7), TIME_STAMP_FORMATTER);
-                code = Integer.parseInt(matcher.group(8));
+                sp = SPStatus.valueOf(Integer.parseInt(matcher.group(8)));
                 break;
             case SMS_DELIVERY:
                 matcher = patternSmsDelivery.matcher(response);
@@ -170,8 +171,8 @@ public class CMGR extends AAT {
         return dt;
     }
 
-    public int getCode() {
-        return code;
+    public SPStatus getSp() {
+        return sp;
     }
 
     public String getOa() {

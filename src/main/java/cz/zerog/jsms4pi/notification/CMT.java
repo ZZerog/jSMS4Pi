@@ -23,8 +23,8 @@ package cz.zerog.jsms4pi.notification;
  */
 
 
-import cz.zerog.jsms4pi.tool.TypeOfMemory;
 import static cz.zerog.jsms4pi.tool.PatternTool.*;
+import java.time.LocalDateTime;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -35,24 +35,24 @@ import java.util.regex.Pattern;
  */
 public final class CMT implements Notification {
 
-    private final static Pattern pattern = Pattern.compile(build("\\+CMT: *\"({})\",({})",MEMORY,NUMBER));
+    private final static Pattern pattern = Pattern.compile(build("\\+CMT: *\"({})\",({}),\"({})\"",
+            PHONE_NUMBER, //oa
+            WHATEVER,     //alpha  
+            TIME_STAMP)); //scts
 
-    private final TypeOfMemory memory;
-    private final int index;
+    private final String oa; //source phone number
+    private final String alpha; //if oa is in phone book
+    private final LocalDateTime scts; //
+    private final String data; //text
+    
     private final String response;
     
     public CMT(Matcher matcher, String response, String text) {
-        memory = TypeOfMemory.valueOf(matcher.group(1));
-        index = Integer.parseInt(matcher.group(2));
+        oa = matcher.group(1);
+        alpha = matcher.group(2);
+        scts = LocalDateTime.parse(matcher.group(3), TIME_STAMP_FORMATTER);
+        data = text;
         this.response = response+"\r\n"+text;
-    }
-
-    public TypeOfMemory getMemoryType() {
-        return memory;
-    }
-
-    public int getSMSIndex() {
-        return index;
     }
 
     public static CMT tryParse(String notification, UnknownNotifications notifications) {
@@ -66,5 +66,21 @@ public final class CMT implements Notification {
     @Override
     public String getResponse() {
         return response;
+    }
+    
+    public String getOa() {
+        return oa;
+    }
+    
+    public String getAlpha() {
+        return alpha;
+    }
+    
+    public LocalDateTime getScts() {
+        return scts;
+    }
+    
+    public String getData() {
+        return data;
     }
 }

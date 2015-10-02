@@ -42,7 +42,7 @@ public class GMI extends AAT {
         name = deleteCrrt(response);
     }
 
-    public String getModelInfo() {
+    public String getManufaturer() {
         return name;
     }
 }

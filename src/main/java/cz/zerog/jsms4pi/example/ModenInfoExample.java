@@ -44,7 +44,7 @@ public class ModenInfoExample {
 
         ATGateway gateway = new ATGateway(port);
         gateway.open();
-        gateway.getModemInfo();
+        gateway.printModemInfo();
         gateway.close();
         
     }

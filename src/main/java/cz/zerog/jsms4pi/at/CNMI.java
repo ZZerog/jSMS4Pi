@@ -21,16 +21,15 @@ package cz.zerog.jsms4pi.at;
  * <http://www.gnu.org/licenses/lgpl-3.0.html>.
  * #L%
  */
-
 /**
  * Configuration of indications
  *
  * @author zerog
  */
 public class CNMI extends AAT {
-    
+
     public static final String NAME = "+CNMI";
-    
+
     private Mode mode;
     private Mt mt;
     private Bm bm;
@@ -39,144 +38,207 @@ public class CNMI extends AAT {
 
     public CNMI(Mode mode, Mt mt, Bm bm, Ds ds, Bfr bfr) {
         super(NAME);
-        this.mode=mode;
-        this.mt=mt;
-        this.bm=bm;
-        this.ds=ds;
-        this.bfr=bfr;
-    }    
-    
+        this.mode = mode;
+        this.mt = mt;
+        this.bm = bm;
+        this.ds = ds;
+        this.bfr = bfr;
+    }
+
     public CNMI(Mode mode, Mt mt, Bm bm, Ds ds) {
         this(mode, mt, bm, ds, null);
     }
-    
+
     public CNMI(Mode mode, Mt mt, Bm bm) {
         this(mode, mt, bm, null, null);
-    }    
-    
+    }
+
     public CNMI(Mode mode, Mt mt) {
         this(mode, mt, null, null, null);
-    }        
-    
+    }
+
     public CNMI(Mode mode) {
         this(mode, null, null, null, null);
-    }            
-    
+    }
+
     public enum Mode {
-        
+
         ONLY_TEL_0(0), // Buffer unsolicited result codes in the TA
         _1(1), //Discard indication and reject new received message unsolicited result codes 
         _2(2), //Buffer unsolicited result codes  and flush them to the TE
         _3(3), //Forward unsolicited result codes directly to the TE
         ;
-        
+
         int index;
-        
+
         private Mode(int index) {
             this.index = index;
         }
-        
+
         public int getIndex() {
             return index;
         }
+
+        public static Mode valueOf(int index) {
+            switch (index) {
+                case 0:
+                    return ONLY_TEL_0;
+                case 1:
+                    return _1;
+                case 2:
+                    return _2;
+                case 3:
+                    return _3;
+            }
+            throw new IllegalArgumentException("Accepted only 0, 1, 2  or 3");
+        }
     }
-    
+
     public enum Mt {
-        
-        NO_NITIFI_0(0), 
-        NOTIFI_1(1), 
-        DIRECT_NOTIFI_BESIDES_CLASS2_2(2), 
-        NITIFI_ONLY_CLASS3_3(3), 
-        ;
-        
+
+        NO_NITIFI_0(0),
+        NOTIFI_1(1),
+        DIRECT_NOTIFI_BESIDES_CLASS2_2(2),
+        NITIFI_ONLY_CLASS3_3(3),;
+
         int index;
-        
+
         private Mt(int index) {
             this.index = index;
         }
-        
+
         public int getIndex() {
             return index;
+        }
+        
+        public static Mt valueOf(int index) {
+            switch (index) {
+                case 0:
+                    return NO_NITIFI_0;
+                case 1:
+                    return NOTIFI_1;
+                case 2:
+                    return DIRECT_NOTIFI_BESIDES_CLASS2_2;
+                case 3:
+                    return NITIFI_ONLY_CLASS3_3;
+            }
+            throw new IllegalArgumentException("Accepted only 0, 1, 2  or 3");
         }        
-    }    
-    
-    public enum Bm {        
-        NO_CBM_NOTIFI_0(0), 
-        CBM_NOTIFI_1(1), 
-        DIRECT_NOTIFI_CMB_2(2), 
-        DIRECT_NOTIFI_CLASS3_3(3), 
-        ;
-        
+    }
+
+    public enum Bm {
+
+        NO_CBM_NOTIFI_0(0),
+        CBM_NOTIFI_1(1),
+        DIRECT_NOTIFI_CMB_2(2),
+        DIRECT_NOTIFI_CLASS3_3(3),;
+
         int index;
-        
+
         private Bm(int index) {
             this.index = index;
         }
-        
+
         public int getIndex() {
             return index;
+        }
+        
+        public static Bm valueOf(int index) {
+            switch (index) {
+                case 0:
+                    return NO_CBM_NOTIFI_0;
+                case 1:
+                    return CBM_NOTIFI_1;
+                case 2:
+                    return DIRECT_NOTIFI_CMB_2;
+                case 3:
+                    return DIRECT_NOTIFI_CLASS3_3;
+            }
+            throw new IllegalArgumentException("Accepted only 0, 1, 2  or 3");
         }        
-    }      
-    
-    public enum Ds {        
-        NO_STATUS_REPORT_0(0), 
-        STATUS_REPORT_NOTIFI_1(1), 
-        STATUS_REPORT_NOTIFI_IF_STORED_2(2), 
-        ;
-        
+    }
+
+    public enum Ds {
+
+        NO_STATUS_REPORT_0(0),
+        STATUS_REPORT_NOTIFI_1(1),
+        STATUS_REPORT_NOTIFI_IF_STORED_2(2),;
+
         int index;
-        
+
         private Ds(int index) {
             this.index = index;
         }
-        
+
         public int getIndex() {
             return index;
+        }
+        
+        public static Ds valueOf(int index) {
+            switch (index) {
+                case 0:
+                    return NO_STATUS_REPORT_0;
+                case 1:
+                    return STATUS_REPORT_NOTIFI_1;
+                case 2:
+                    return STATUS_REPORT_NOTIFI_IF_STORED_2;
+            }
+            throw new IllegalArgumentException("Accepted only 0, 1 or 2");
         }        
-    }    
-    
-    public enum Bfr {        
-        BUFFER_FLUSHED_0(0), 
-        BUFFER_CLEARED_1(1), 
-        ;
-        
+    }
+
+    public enum Bfr {
+
+        BUFFER_FLUSHED_0(0),
+        BUFFER_CLEARED_1(1),;
+
         int index;
-        
+
         private Bfr(int index) {
             this.index = index;
         }
-        
+
         public int getIndex() {
             return index;
-        }        
-    }    
+        }
+        
+        public static Bfr valueOf(int index) {
+            switch (index) {
+                case 0:
+                    return BUFFER_FLUSHED_0;
+                case 1:
+                    return BUFFER_CLEARED_1;                
+            }
+            throw new IllegalArgumentException("Accepted only 0 or 1");
+        }           
+    }
 
     @Override
     public String getRequest() {
         StringBuilder at = new StringBuilder();
         at.append(getName());
-        at.append("=");        
+        at.append("=");
         at.append(mode.getIndex());
-        if(mt==null) {
+        if (mt == null) {
             at.append(AAT.CR);
             return at.toString();
         }
         at.append(",").append(mt.getIndex());
-        if(bm==null) {
+        if (bm == null) {
             at.append(AAT.CR);
             return at.toString();
-        }    
+        }
         at.append(",").append(bm.getIndex());
-        if(ds==null) {
+        if (ds == null) {
             at.append(AAT.CR);
             return at.toString();
         }
         at.append(",").append(ds.getIndex());
-        if(bfr==null) {
+        if (bfr == null) {
             at.append(AAT.CR);
             return at.toString();
         }
-        at.append(",").append(bfr.getIndex()).append(AAT.CR);        
+        at.append(",").append(bfr.getIndex()).append(AAT.CR);
         return at.toString();
-    }   
+    }
 }

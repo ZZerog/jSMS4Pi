@@ -57,9 +57,9 @@ public final class CDS implements Notification {
     
     public CDS(Matcher matcher, String response) {
         fo = Integer.valueOf(matcher.group(1));
-        mr = Integer.parseInt(matcher.group(2));
+        mr = Integer.valueOf(matcher.group(2));
         ra = matcher.group(3);
-        tora =PhoneType.valueOf(matcher.group(4));
+        tora =PhoneType.valueOf(Integer.parseInt(matcher.group(4)));
         scts = LocalDateTime.parse(matcher.group(5), TIME_STAMP_FORMATTER);
         dt = LocalDateTime.parse(matcher.group(6), TIME_STAMP_FORMATTER);
         status = SPStatus.valueOf(Integer.parseInt(matcher.group(7)));
@@ -68,9 +68,11 @@ public final class CDS implements Notification {
 
     public static CDS tryParse(String notification, UnknownNotifications notifications) {
         Matcher matcher = pattern.matcher(notification);
+        
         if (matcher.matches()) {
             return new CDS(matcher, notification);
         }
+        //throw new AtParseException(notification, pattern);
         return null;
     }
 

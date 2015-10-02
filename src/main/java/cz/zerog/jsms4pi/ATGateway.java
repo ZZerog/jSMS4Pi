@@ -1,4 +1,4 @@
-    package cz.zerog.jsms4pi;
+package cz.zerog.jsms4pi;
 
 /*
  * #%L
@@ -35,6 +35,7 @@ import cz.zerog.jsms4pi.exception.GatewayException;
 import cz.zerog.jsms4pi.exception.GatewayRuntimeException;
 import cz.zerog.jsms4pi.exception.ModemException;
 import cz.zerog.jsms4pi.message.InboundMessage;
+import cz.zerog.jsms4pi.tool.SPStatus;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -50,6 +51,8 @@ import org.apache.logging.log4j.Logger;
 public class ATGateway implements Gateway {
 
     private final Logger log = LogManager.getLogger();
+
+    private final Configurator config = new Configurator();
 
     /**
      * Modem
@@ -99,9 +102,8 @@ public class ATGateway implements Gateway {
     }
 
     /*
-    Set Listeners
-    */
-    
+     Set Listeners
+     */
     public void setOutboundMessageEventListener(OutboundMessageEventListener listener) {
         this.smsStatusListener = listener;
     }
@@ -109,10 +111,10 @@ public class ATGateway implements Gateway {
     public void setInboundCallListener(InboundCallEventListener callListener) {
         this.callListener = callListener;
     }
-    
+
     public void setInboundMessageListener(InboundMessageEventListener listener) {
         this.inboundMessageLinstener = listener;
-    }    
+    }
 
     @Override
     public void setGlobalDeliveryReport(boolean b) {
@@ -175,7 +177,7 @@ public class ATGateway implements Gateway {
             throw new GatewayException(ex);
         }
     }
-    
+
     public <T extends AAT> T directSendAtCommand(T cmd) throws ModemException {
         return modem.send(cmd);
     }
@@ -196,6 +198,13 @@ public class ATGateway implements Gateway {
 
             //only test
             modem.send(new AT());
+
+            //select optimal modem configuration
+            config.selectModem(this.getManufactures());
+
+            //print all setting
+            //config.printAll();
+
             //restart modem
             modem.send(new ATZ());
             //echo disable
@@ -204,7 +213,7 @@ public class ATGateway implements Gateway {
             //set sms service address
             if (smsServiceAddress == null) {
                 if (!isServiceAddressSet()) {
-                    log.info("Cannot send message before set Service Address!.  User method setSmsServiceAddress(service_number);");
+                    log.info("Cannot send message before set Service Address!.  Use method setSmsServiceAddress(service_number);");
                 } else {
                     //reset address
                     CSCAquestion cscaq = modem.send(new CSCAquestion());
@@ -227,12 +236,12 @@ public class ATGateway implements Gateway {
             //test suppored stores
             CPMSsupport cpmss = new CPMSsupport();
             if (modem.send(cpmss).isStatusOK()) {
-                mem1RW = getPreferedMemoryBySuppored(cpmss.getMemory1());
-                mem2Storege = getPreferedMemoryBySuppored(cpmss.getMemory1());
-                mem3Rec = getPreferedMemoryBySuppored(cpmss.getMemory1());
+                mem1RW = getPreferedMemoryBySuppored(cpmss.getMemory1(), config.getMemory1RW());
+                mem2Storege = getPreferedMemoryBySuppored(cpmss.getMemory2(), config.getMemory2Storage());
+                mem3Rec = getPreferedMemoryBySuppored(cpmss.getMemory3(), config.getMemory3Rec());
 
                 //set stores (for read/write, send, rec)
-                if(!modem.send(new CPMS(mem1RW, mem2Storege, mem3Rec)).isStatusOK()) {
+                if (!modem.send(new CPMS(mem1RW, mem2Storege, mem3Rec)).isStatusOK()) {
                     log.error("Cannot set storages (AT Command CPMS). Initialization failed.");
                     return false;
                 }
@@ -253,19 +262,16 @@ public class ATGateway implements Gateway {
 
             //set notification to PC
             if (!modem.send(new CNMI(
-                    //CNMI.Mode._2,
-                    CNMI.Mode._1,
-                    //CNMI.Mt.NOTIFI_1,
-                    CNMI.Mt.DIRECT_NOTIFI_BESIDES_CLASS2_2,
-                    CNMI.Bm.NO_CBM_NOTIFI_0,
-                    //CNMI.Ds.STATUS_REPORT_NOTIFI_IF_STORED_2)).isStatusOK()) {
-                    CNMI.Ds.STATUS_REPORT_NOTIFI_1)).isStatusOK()) {
+                    config.getCNMIMode(),
+                    config.getCNMIMt(),
+                    config.getCNMIBm(),
+                    config.getCNMIDs())).isStatusOK()) {
                 log.error("Cannot set notification policy (AT Command CNMI). Initialization failed.");
                 return false;
             }
-
+            
             //show caller ID when RING notify
-            if(modem.send(new CLIP(true)).isStatusOK()) {
+            if (!modem.send(new CLIP(true)).isStatusOK()) {
                 log.warn("Cannot set RING notification. Inbound Call Event  is out of service!");
             }
 
@@ -362,8 +368,8 @@ public class ATGateway implements Gateway {
     public void notify(Notification notification) {
         try {
             /*
-            Delivery status
-            */
+             Delivery status
+             */
             if (notification instanceof CDSI) {
                 CDSI cdsi = (CDSI) notification;
 
@@ -374,77 +380,71 @@ public class ATGateway implements Gateway {
                 CMGR cmgr = modem.send(new CMGR(CMGR.Mode.SMS_STATUS_REPORT, cdsi.getSMSIndex()));
                 if (!cmgr.isStatusOK()) {
                     int eCode = cmgr.getCmsErrorCode();
-                    if(eCode>0) {
-                        cmgr.throwExceptionInMainThread(new RuntimeException("Cannot read sms status by index ("+eCode+"): " + cdsi.getSMSIndex()));
+                    if (eCode > 0) {
+                        cmgr.throwExceptionInMainThread(new RuntimeException("Cannot read sms status by index (" + eCode + "): " + cdsi.getSMSIndex()));
                         return;
-                    }                    
+                    }
                 }
                 //delete status repord
                 modem.send(new CMGD(cdsi.getSMSIndex()));
                 //change back to main memory
                 modem.send(new CPMS(mem1RW));
 
-                for (OutboundMessage outMess : outgoingList) {
-                    if (outMess.getIndex() == cmgr.getMr()) {
-
-                        switch (cmgr.getCode()) {
-                            case 0:
-                                outMess.setStatus(OutboundMessage.Status.SENDED_ACK);
-                                outgoingList.remove(outMess);
-                                createOutboundEvent(outMess, outMess.getStatus());
-                                break;
-                            case 99:
-                                outMess.setStatus(OutboundMessage.Status.EXPIRED);
-                                outgoingList.remove(outMess);
-                                createOutboundEvent(outMess, outMess.getStatus());
-                                break;
-                            default:
-                                return;
-
-                        }
-                        return;
-                    }
+                if(!findOutboudMessage(cmgr.getMr(), cmgr.getSp())) {
+                    throw new RuntimeException("Cannot find  message with index " + cdsi.getSMSIndex());
                 }
-
-                throw new RuntimeException("Cannot find  message with index " + cdsi.getSMSIndex());
             }
+
+            if (notification instanceof CDS) {
+                CDS cds = (CDS) notification;
+                if(!findOutboudMessage(cds.getMr(), cds.getStatus())) {
+                    throw new RuntimeException("Cannot find  message with index " + cds.getMr());
+                }
+            }
+
             /*
-            Incoming call
-            */
+             Incoming call
+             */
             if (notification instanceof RING) {
                 RING ring = (RING) notification;
                 createInboundCallEvent(ring.getCallerId(), ring.getValidity());
                 return;
             }
             /*
-            Incoming call
-            */            
+             Incoming call
+             */
             if (notification instanceof CLIPN) {
                 CLIPN ring = (CLIPN) notification;
                 createInboundCallEvent(ring.getCallerId(), RING.Validity.VALID);
                 return;
             }
             /*
-            Incoming SMS
-            */            
+             Incoming SMS
+             */
             if (notification instanceof CMTI) {
-                CMTI cmti = (CMTI) notification;                
+                CMTI cmti = (CMTI) notification;
                 //change to memory from CDSI notification
                 modem.send(new CPMS(cmti.getMemoryType()));
                 //read sms
                 CMGR cmgr = modem.send(new CMGR(CMGR.Mode.SMS_DELIVERY, cmti.getSMSIndex()));
                 if (!cmgr.isStatusOK()) {
                     int eCode = cmgr.getCmsErrorCode();
-                    if(eCode>0) {
-                        cmgr.throwExceptionInMainThread(new RuntimeException("Cannot read sms by index ("+eCode+"): " + cmti.getSMSIndex()));
+                    if (eCode > 0) {
+                        cmgr.throwExceptionInMainThread(new RuntimeException("Cannot read sms by index (" + eCode + "): " + cmti.getSMSIndex()));
                         return;
-                    }                    
-                }                
+                    }
+                }
                 //delete sms
                 modem.send(new CMGD(cmti.getSMSIndex()));
                 //change back to main memory
-                modem.send(new CPMS(mem1RW)); 
+                modem.send(new CPMS(mem1RW));
                 createInboundMessageEvent(new InboundMessage(cmgr.getText(), cmgr.getOa()));
+                return;
+            }
+            
+            if (notification instanceof CMT) {
+                CMT cmt = (CMT) notification;
+                createInboundMessageEvent(new InboundMessage(cmt.getData(), cmt.getOa()));
                 return;
             }            
         } catch (ModemException ex) {
@@ -452,17 +452,41 @@ public class ATGateway implements Gateway {
         }
     }
 
+    private boolean findOutboudMessage(int messIndex, SPStatus messStatus) {
+        for (OutboundMessage outMess : outgoingList) {
+            if (outMess.getIndex() == messIndex) {
+
+                switch (messStatus) {
+                    case RECEIVED: //0
+                        outMess.setStatus(OutboundMessage.Status.SENDED_ACK);
+                        outgoingList.remove(outMess);
+                        createOutboundEvent(outMess, outMess.getStatus());
+                        break;
+                    case SEVICE_REJECTED: //99
+                        outMess.setStatus(OutboundMessage.Status.EXPIRED);
+                        outgoingList.remove(outMess);
+                        createOutboundEvent(outMess, outMess.getStatus());
+                        break;
+                    default:
+                        log.warn("Unknown Outboud Message status: '{}'",messStatus);                        
+                } 
+                return true;
+            }
+        }
+        return false;
+    }
+
     private void createOutboundEvent(OutboundMessage mess, OutboundMessage.Status status) {
         if (smsStatusListener != null) {
             smsStatusListener.outboundMessageEvent(new OutboundMessageEvent(mess, status));
         }
     }
-    
+
     private void createInboundMessageEvent(InboundMessage mess) {
         if (inboundMessageLinstener != null) {
             inboundMessageLinstener.inboundMessageEvent(new InboundMessageEvent(mess));
         }
-    }    
+    }
 
     private void createInboundCallEvent(String callerId, RING.Validity validity) {
         if (callListener != null) {
@@ -473,10 +497,10 @@ public class ATGateway implements Gateway {
     /*
      Private methods
      */
-    private TypeOfMemory getPreferedMemoryBySuppored(TypeOfMemory[] arr) {
-        List<TypeOfMemory> m1 = Arrays.asList(arr);
-        if (m1.contains(TypeOfMemory.ME)) {
-            return TypeOfMemory.ME;
+    private TypeOfMemory getPreferedMemoryBySuppored(TypeOfMemory[] supportedMemoryList, TypeOfMemory defaulMemory) {
+        List<TypeOfMemory> supportedMemory = Arrays.asList(supportedMemoryList);
+        if (supportedMemory.contains(defaulMemory)) {
+            return defaulMemory;
         } else {
             return TypeOfMemory.SM;
         }
@@ -516,19 +540,32 @@ public class ATGateway implements Gateway {
         }
         return true;
     }
-    
-    public void getModemInfo() throws ModemException {
+
+    private ModemInformation getManufactures() throws ModemException {
+        ModemInformation info = new ModemInformation();
+
+        info.setManufacturer(modem.send(new GMI()).getManufaturer());
+        info.setModelAndCapabilities(modem.send(new CGMM()).getModel());
+        info.setImei(modem.send(new CGSN()).getIMEI());
+
+        return info;
+    }
+
+    public void printModemInfo() throws ModemException {
         System.out.print("Manufacturer name: ");
-        System.out.println(modem.send(new GMI()).getModelInfo());
-        
+        System.out.println(modem.send(new GMI()).getManufaturer());
+
         System.out.print("Manufacturer OS version: ");
-        System.out.println(modem.send(new CGMR()).getModelInfo());
-        
+        System.out.println(modem.send(new CGMR()).getVersion());
+
         System.out.print("IMEI: ");
-        System.out.println(modem.send(new CGSN()).getModelInfo());        
-                
+        System.out.println(modem.send(new CGSN()).getIMEI());
+
         System.out.print("Model description: ");
-        System.out.println(modem.send(new CGMM()).getModelInfo());           
+        System.out.println(modem.send(new CGMM()).getModel());
+        
+        //select optimal modem configuration
+        config.selectModem(this.getManufactures());        
     }
 
     /**

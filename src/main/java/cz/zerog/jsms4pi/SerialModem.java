@@ -25,6 +25,7 @@ package cz.zerog.jsms4pi;
 
 import cz.zerog.jsms4pi.at.AAT;
 import cz.zerog.jsms4pi.exception.ModemException;
+import cz.zerog.jsms4pi.notification.CDS;
 import cz.zerog.jsms4pi.notification.CDSI;
 import cz.zerog.jsms4pi.notification.CLIPN;
 import cz.zerog.jsms4pi.notification.CMT;
@@ -238,6 +239,10 @@ public class SerialModem extends Thread implements Modem, SerialPortEventListene
         if((notification = CMT.tryParse(notificationMessage,notifications))!=null) {
             return notification;
         }                
+        
+        if((notification = CDS.tryParse(notificationMessage,notifications))!=null) {
+            return notification;
+        }                                   
         return null;
     }
 

@@ -42,7 +42,7 @@ public class CGMR extends AAT {
         osRevision = AAT.deleteCrrt(response);
     }
 
-    public String getModelInfo() {
+    public String getVersion() {
         return osRevision;
-    }   
+    }
 }
