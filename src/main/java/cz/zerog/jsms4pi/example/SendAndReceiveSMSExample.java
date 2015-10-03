@@ -22,7 +22,6 @@ package cz.zerog.jsms4pi.example;
  * #L%
  */
 import cz.zerog.jsms4pi.ATGateway;
-import cz.zerog.jsms4pi.Tool;
 import cz.zerog.jsms4pi.message.OutboundMessage;
 import cz.zerog.jsms4pi.event.CallEvent;
 import cz.zerog.jsms4pi.event.InboundCallEventListener;
@@ -141,7 +140,7 @@ public class SendAndReceiveSMSExample implements OutboundMessageEventListener, I
 
         if (servise == null) {
             if (!gateway.isServiceAddressSet()) {
-                System.out.println("Please, write phone number of SMS Service Address: ");
+                System.out.println("Can you write phone number of SMS Service Address: ");
                 gateway.setSmsServiceAddress(reader.readLine());
             }
         } else {

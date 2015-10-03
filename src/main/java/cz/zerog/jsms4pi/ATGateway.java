@@ -143,9 +143,9 @@ public class ATGateway implements Gateway {
         try {
             modem.open(port);
             status = Status.OPENED;
-            log.info("Gateway on port '{}' is ready", port);
+            log.info("Gateway is ready, port '{}'", port);
         } catch (ModemException ex) {
-            throw new GatewayException(ex);
+            throw new GatewayException(ex, port);
         }
     }
 
@@ -159,9 +159,9 @@ public class ATGateway implements Gateway {
         try {
             modem.close();
             status = Status.CLOSED;
-            log.info("Gateway on port '{}' is closed", port);
+            log.info("Gateway is closed, port '{}' ", port);
         } catch (ModemException e) {
-            throw new GatewayException(e);
+            throw new GatewayException(e, port);
         }
     }
 
@@ -169,12 +169,12 @@ public class ATGateway implements Gateway {
         try {
             CSCAquestion cscaq = modem.send(new CSCAquestion());
             if (!cscaq.isStatusOK()) {
-                throw new GatewayException("Cannot test if Service Address is set");
+                throw new GatewayException(GatewayException.SERVISE_READ_ERR, port);
             }
             return cscaq.getAddress().length() > 0;
 
         } catch (ModemException ex) {
-            throw new GatewayException(ex);
+            throw new GatewayException(ex, port);
         }
     }
 
@@ -193,7 +193,7 @@ public class ATGateway implements Gateway {
 
         try {
             if (status == Status.CLOSED) {
-                throw new GatewayRuntimeException("Gateway on port '" + port + "' is closed");
+                throw new GatewayRuntimeException("Gateway is closed", port);
             }
 
             //only test
@@ -257,7 +257,7 @@ public class ATGateway implements Gateway {
                     log.warn("While modem initialization no signal");
                 }
             } else {
-                log.warn("While modem initialization modem isn't registered into network");
+                log.warn("While modem initialization, modem doesn't registered into network");
             }
 
             //set notification to PC
@@ -276,10 +276,10 @@ public class ATGateway implements Gateway {
             }
 
             status = Status.OPENED_INITIALIZED;
-            log.info("Gateway inicialized succesful");
+            log.info("Gateway initialized successfully");
             return true;
         } catch (ModemException ex) {
-            throw new GatewayException(ex);
+            throw new GatewayException(ex, port);
         }
     }
 
@@ -292,11 +292,11 @@ public class ATGateway implements Gateway {
     public void sendMessage(OutboundMessage message) throws GatewayException {
         try {
             if (!status.equals(Status.OPENED_INITIALIZED)) {
-                throw new GatewayRuntimeException("Modem is not OPENED and INITIALIZED");
+                throw new GatewayRuntimeException("Modem is not OPENED and INITIALIZED", port);
             }
 
             if (smsServiceAddress == null) {
-                throw new GatewayRuntimeException("Sms Service Address is empty. Set it first.");
+                throw new GatewayRuntimeException("Sms Service Address is empty. Set it first.", port);
             }
 
             if (!isRegisteredIntoNetwork() || !sufficientSignal()) {
@@ -304,10 +304,6 @@ public class ATGateway implements Gateway {
                 return;
             }
 
-            //TODO v SMS musi byt delivery report 3 stavy, active, deactive a nenastaveno. Protoze pokud je aktivni nebo je aktivni globalni
-            //tak se nastavi, pokud je aktivni globalni a v sms nenastaveno tak se taky nastavi
-            //ale pokud je v sms nastaveno neaktivni a globalni je nastaveno na aktivni tak se NEODESLE!
-            //SMS nastaveni ma vyssi prioritu od globalniho
             if (message.isDeliveryReport()) {
                 //TODO impl. me
             }
@@ -324,7 +320,7 @@ public class ATGateway implements Gateway {
             message.setStatus(OutboundMessage.Status.SENDED_NOT_ACK);
             outgoingList.add(message);
         } catch (ModemException ex) {
-            throw new GatewayException(ex);
+            throw new GatewayException(ex, port);
         }
     }
 
@@ -347,7 +343,7 @@ public class ATGateway implements Gateway {
                         if (modem.send(new CSCA(address)).isStatusOK()) {
                             smsServiceAddress = address;
                         } else {
-                            throw new GatewayRuntimeException("Modem cannot accept sms service address");
+                            throw new GatewayRuntimeException("Modem cannot accept sms service address", port);
                         }
 
                     }
@@ -357,10 +353,10 @@ public class ATGateway implements Gateway {
                         break;
                 }
             } else {
-                throw new GatewayRuntimeException("Address number have bad format.");
+                throw new GatewayRuntimeException("The Message Service Address has invalid format", port);
             }
         } catch (ModemException ex) {
-            throw new GatewayException(ex);
+            throw new GatewayException(ex, port);
         }
     }
 
@@ -574,5 +570,5 @@ public class ATGateway implements Gateway {
     public enum Status {
 
         OPENED, OPENED_INITIALIZED, CLOSED;
-    }
+    }   
 }

@@ -28,12 +28,20 @@ package cz.zerog.jsms4pi.exception;
  */
 public class GatewayRuntimeException extends RuntimeException {
     
-    public GatewayRuntimeException(String message) {
-        super(message);
+    private final String port;
+    
+    public GatewayRuntimeException(String message, String port) {
+        super(message+" Port: "+port);
+        this.port = port;
     }
 
-    public GatewayRuntimeException(String message, Throwable t) {
+    public GatewayRuntimeException(String message, Throwable t, String port) {
         super(message, t);
+        this.port = port;
     }    
+    
+    public String getPort() {
+        return port;
+    }
     
 }

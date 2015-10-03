@@ -23,7 +23,6 @@ package cz.zerog.jsms4pi.example;
  */
 
 import cz.zerog.jsms4pi.ATGateway;
-import cz.zerog.jsms4pi.Tool;
 import cz.zerog.jsms4pi.exception.GatewayException;
 import cz.zerog.jsms4pi.exception.ModemException;
 import java.io.BufferedReader;

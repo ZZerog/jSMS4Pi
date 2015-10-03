@@ -27,13 +27,22 @@ package cz.zerog.jsms4pi.exception;
  * @author zerog
  */
 public class GatewayException extends Exception {
+    
+    public static final String SERVISE_READ_ERR = "Cannot read message servis number";
+    
+    private String port;
 
-    public GatewayException(Throwable cause) {
+    public GatewayException(ModemException cause, String port) {
         super(cause);
+        this.port = port;
     }
     
-    public GatewayException(String message) {
-        super(message);
-    }    
+    public GatewayException(String message, String port) {
+        super(message+". Port: "+port);
+        this.port = port;
+    }  
     
+    public String getPort() {
+        return port;
+    }
 }

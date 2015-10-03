@@ -24,6 +24,8 @@ package cz.zerog.jsms4pi.example;
 import cz.zerog.jsms4pi.ATGateway;
 import cz.zerog.jsms4pi.event.CallEvent;
 import cz.zerog.jsms4pi.event.InboundCallEventListener;
+import cz.zerog.jsms4pi.event.InboundMessageEvent;
+import cz.zerog.jsms4pi.event.InboundMessageEventListener;
 import cz.zerog.jsms4pi.exception.GatewayException;
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -33,44 +35,43 @@ import java.io.InputStreamReader;
  *
  * @author zerog
  */
-public class InboundCallExample implements InboundCallEventListener {
+public class ReceiveSMSExample implements  InboundCallEventListener, InboundMessageEventListener {
 
     public static void main(String[] args) throws GatewayException, IOException {
         BufferedReader reader = new BufferedReader(new InputStreamReader(System.in));
 
         String port = null;
-        
-        if(args.length > 0) {
+
+        if (args.length > 0) {
+
+            if (args.length % 2 != 0 && args.length > 1) {
+                System.out.println("Wrong count of argument.");
+                printHelp();
+                System.exit(0);
+            }
+
             for (int i = 0; i < args.length; i++) {
                 String identifier = args[i];
-                
-                switch(identifier) {
-                    case "-p" :
-                        if(i+1 < args.length) {
-                            i++;
-                            port = args[i];
-                        } else {
-                            System.out.println("Wrong count of argument.");
-                            printHelp();
-                            System.exit(0);
-                        }
+
+                switch (identifier) {
+                    case "-p":
+                        i++;
+                        port = args[i];
                         break;
-                    case "-h" :
-                    case "-help" :
+                    case "-h":
+                    case "-help":
                         printHelp();
                         System.exit(0);
                         break;
                     default:
-                        System.out.println("Unknow parametr "+args[i]);
+                        System.out.println("Unknow parametr " + args[i]);
                         printHelp();
                         System.exit(0);
-                }                
+                }
             }
         }
-        
-        
-        
-        if(port==null) {
+
+        if (port == null) {
             port = Tool.selectionPort(reader);
         }
         
@@ -78,40 +79,44 @@ public class InboundCallExample implements InboundCallEventListener {
             System.exit(0);
         }
 
-        System.out.println("Summary: ");
+        System.out.println("\n\n\nSummary: ");
         System.out.println("Serial port: " + port);
+
 
         Tool.enter(reader);
 
-        new InboundCallExample(port, reader);
+        new ReceiveSMSExample().run(port, reader);
     }
 
     private static void printHelp() {
-        //TODO
-        System.out.println("Informace -p je port");
+        //TODO 
+        System.out.println("Info");
     }
 
-    public InboundCallExample(String port, BufferedReader reader) throws GatewayException, IOException {
+    public void run(String port, BufferedReader reader) throws GatewayException, IOException {
+
         ATGateway gateway = new ATGateway(port);
 
-        try {
-            gateway.setInboundCallListener(this);
+        gateway.setInboundCallListener(this);
+        gateway.setInboundMessageListener(this);
 
-            gateway.open();
-            gateway.init();
-        } catch (Exception e) {          
-            gateway.close();
-            throw e;
-        }
+        gateway.open();
+        gateway.init();
 
-        System.out.print("Now try call me.  Enter key exits program.");
-        reader.readLine();
+        System.out.println("Enter to exit");
+        System.console().readLine();
 
         gateway.close();
+        System.out.println("Bye");
     }
 
     @Override
     public void inboundCallEvent(CallEvent event) {
         System.out.println("Detected a call: " + event.getCallerId());
+    }
+
+    @Override
+    public void inboundMessageEvent(InboundMessageEvent inboundMessageEvent) {
+        System.out.println("Received Message from '"+inboundMessageEvent.getMessage().getSource()+"', text: "+inboundMessageEvent.getMessage().getText());
     }
 }

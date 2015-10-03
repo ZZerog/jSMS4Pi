@@ -22,7 +22,6 @@ package cz.zerog.jsms4pi.example;
  * #L%
  */
 import cz.zerog.jsms4pi.ATGateway;
-import cz.zerog.jsms4pi.Tool;
 import cz.zerog.jsms4pi.message.OutboundMessage;
 import cz.zerog.jsms4pi.event.CallEvent;
 import cz.zerog.jsms4pi.event.InboundCallEventListener;
