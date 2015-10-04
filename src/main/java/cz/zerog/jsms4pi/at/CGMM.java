@@ -41,7 +41,7 @@ public class CGMM extends AAT {
 
     @Override
     protected void parseCommandResult(String response) {
-        modelInfo = AAT.deleteCrrt(response);
+        modelInfo = AAT.deleteCrrt(response).replaceAll("\\"+NAME, "");
     }
     
     public String getModel() {

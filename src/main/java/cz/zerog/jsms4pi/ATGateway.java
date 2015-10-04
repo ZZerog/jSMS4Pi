@@ -57,7 +57,7 @@ public class ATGateway implements Gateway {
     /**
      * Modem
      */
-    private final SerialModem modem = new SerialModem(this);
+    private final SerialModem modem;
 
     /**
      * Address of SMS service
@@ -98,6 +98,15 @@ public class ATGateway implements Gateway {
     private boolean globalValidityPeriod;
 
     public ATGateway(String portname) {
+        this(portname, 57600);
+    }
+
+    public ATGateway(String portname, int serialSpeed) {
+        this(portname, serialSpeed, 5 * 1000);
+    }
+
+    public ATGateway(String portname, int serialSpeed, int atTimeOut) {
+        modem = new SerialModem(this, serialSpeed, atTimeOut);
         this.port = portname;
     }
 
@@ -204,7 +213,6 @@ public class ATGateway implements Gateway {
 
             //print all setting
             //config.printAll();
-
             //restart modem
             modem.send(new ATZ());
             //echo disable
@@ -269,7 +277,7 @@ public class ATGateway implements Gateway {
                 log.error("Cannot set notification policy (AT Command CNMI). Initialization failed.");
                 return false;
             }
-            
+
             //show caller ID when RING notify
             if (!modem.send(new CLIP(true)).isStatusOK()) {
                 log.warn("Cannot set RING notification. Inbound Call Event  is out of service!");
@@ -386,14 +394,14 @@ public class ATGateway implements Gateway {
                 //change back to main memory
                 modem.send(new CPMS(mem1RW));
 
-                if(!findOutboudMessage(cmgr.getMr(), cmgr.getSp())) {
+                if (!findOutboudMessage(cmgr.getMr(), cmgr.getSp())) {
                     throw new RuntimeException("Cannot find  message with index " + cdsi.getSMSIndex());
                 }
             }
 
             if (notification instanceof CDS) {
                 CDS cds = (CDS) notification;
-                if(!findOutboudMessage(cds.getMr(), cds.getStatus())) {
+                if (!findOutboudMessage(cds.getMr(), cds.getStatus())) {
                     throw new RuntimeException("Cannot find  message with index " + cds.getMr());
                 }
             }
@@ -437,12 +445,12 @@ public class ATGateway implements Gateway {
                 createInboundMessageEvent(new InboundMessage(cmgr.getText(), cmgr.getOa()));
                 return;
             }
-            
+
             if (notification instanceof CMT) {
                 CMT cmt = (CMT) notification;
                 createInboundMessageEvent(new InboundMessage(cmt.getData(), cmt.getOa()));
                 return;
-            }            
+            }
         } catch (ModemException ex) {
             log.warn("Exception while notification process", ex);
         }
@@ -464,8 +472,8 @@ public class ATGateway implements Gateway {
                         createOutboundEvent(outMess, outMess.getStatus());
                         break;
                     default:
-                        log.warn("Unknown Outboud Message status: '{}'",messStatus);                        
-                } 
+                        log.warn("Unknown Outboud Message status: '{}'", messStatus);
+                }
                 return true;
             }
         }
@@ -559,9 +567,9 @@ public class ATGateway implements Gateway {
 
         System.out.print("Model description: ");
         System.out.println(modem.send(new CGMM()).getModel());
-        
+
         //select optimal modem configuration
-        config.selectModem(this.getManufactures());        
+        config.selectModem(this.getManufactures());
     }
 
     /**
@@ -570,5 +578,5 @@ public class ATGateway implements Gateway {
     public enum Status {
 
         OPENED, OPENED_INITIALIZED, CLOSED;
-    }   
+    }
 }

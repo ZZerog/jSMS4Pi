@@ -198,7 +198,7 @@ public abstract class AAT implements ATResponse {
     }
 
     public static String deleteCrrt(String input) {
-        return input.replaceAll("\r\n", "");
+        return input.replaceAll("\r", "").replaceAll("\n", "");
     }
 
     public enum Mode {

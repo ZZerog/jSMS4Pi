@@ -39,7 +39,7 @@ public class GMI extends AAT {
 
     @Override
     protected void parseCommandResult(String response) {
-        name = deleteCrrt(response);
+        name = deleteCrrt(response).replaceAll("\\"+NAME, "");
     }
 
     public String getManufaturer() {

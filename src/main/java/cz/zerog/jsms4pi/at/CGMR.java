@@ -39,7 +39,7 @@ public class CGMR extends AAT {
     
         @Override
     protected void parseCommandResult(String response) {
-        osRevision = AAT.deleteCrrt(response);
+        osRevision = AAT.deleteCrrt(response).replaceAll("\\"+NAME, "");
     }
 
     public String getVersion() {

@@ -57,10 +57,9 @@ public class SerialModem extends Thread implements Modem, SerialPortEventListene
      RS-232 setting
      */
     private String portName;
-    private static String defaultPort = "/dev/ttyUSB2";
     protected SerialPort serialPort;
-    private final int speed = SerialPort.BAUDRATE_57600;
-    private final int WAITING_TIME = 5 * 1000; //ms
+    private final int SPEED;
+    private final int AT_TIMEOUT; //ms
 
     /*
      Gateway 
@@ -75,13 +74,28 @@ public class SerialModem extends Thread implements Modem, SerialPortEventListene
 
     private final Queue<Notification> notificationQueue = new LinkedBlockingQueue<>();
 
+    /*
+    Status of modem
+    */
     private Mode mode = Mode.READY;
 
-    public SerialModem(Gateway gateway) {
+    public SerialModem(Gateway gateway, int speed, int atTimeout) {
         this.gateway = gateway;
+        this.SPEED = speed;
+        this.AT_TIMEOUT = atTimeout;
+        
         this.setName("SerialNotifyThread");
         this.setDaemon(true);
-        this.start();
+        this.start();        
+    }
+    
+    
+    public SerialModem(Gateway gateway, int speed) {
+        this(gateway, speed, 5 * 1000);
+    }
+    
+    public SerialModem(Gateway gateway) {
+        this(gateway, SerialPort.BAUDRATE_57600);
     }
 
     @Override
@@ -91,7 +105,7 @@ public class SerialModem extends Thread implements Modem, SerialPortEventListene
             close();
             serialPort = new SerialPort(portName);
             serialPort.openPort();
-            serialPort.setParams(speed, 8, 1, SerialPort.PARITY_NONE);
+            serialPort.setParams(SPEED, 8, 1, SerialPort.PARITY_NONE);
             serialPort.setEventsMask(SerialPort.MASK_RXCHAR);
             serialPort.addEventListener(this);
             log.info("Port opened '{}'", portName);
@@ -123,7 +137,7 @@ public class SerialModem extends Thread implements Modem, SerialPortEventListene
         try {
             serialPort.writeString(request);
             synchronized (cmd) {
-                cmd.wait(WAITING_TIME);
+                cmd.wait(AT_TIMEOUT);
             }
             if(cmd.getException()!=null) {
                 throw cmd.getException(); 
@@ -217,6 +231,10 @@ public class SerialModem extends Thread implements Modem, SerialPortEventListene
         }
     }
     
+    public String getPort() {
+        return portName;
+    }
+    
     private Notification findNotification(String notificationMessage, UnknownNotifications notifications) {
         Notification notification;
         
@@ -247,8 +265,10 @@ public class SerialModem extends Thread implements Modem, SerialPortEventListene
     }
 
     private String crrt(String input) {
-        return input.replaceAll("\r", "").replaceAll("\n", "-");
+        return input.replaceAll("\r", "<R>").replaceAll("\n", "<N>");
     }
+    
+    
 
     private enum Mode {
 
