@@ -235,6 +235,14 @@ public class SerialModem extends Thread implements Modem, SerialPortEventListene
         return portName;
     }
     
+    public int getSpeed() {
+        return SPEED;
+    }
+    
+    public int getAtTimeout() {
+        return AT_TIMEOUT;
+    }
+    
     private Notification findNotification(String notificationMessage, UnknownNotifications notifications) {
         Notification notification;
         

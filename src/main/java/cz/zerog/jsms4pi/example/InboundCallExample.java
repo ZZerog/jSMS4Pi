@@ -39,42 +39,40 @@ public class InboundCallExample implements InboundCallEventListener {
         BufferedReader reader = new BufferedReader(new InputStreamReader(System.in));
 
         String port = null;
-        
-        if(args.length > 0) {
+
+        if (args.length > 0) {
             for (int i = 0; i < args.length; i++) {
                 String identifier = args[i];
-                
-                switch(identifier) {
-                    case "-p" :
-                        if(i+1 < args.length) {
+
+                switch (identifier) {
+                    case "-p":
+                        if (i + 1 < args.length) {
                             i++;
                             port = args[i];
                         } else {
-                            System.out.println("Wrong count of argument.");
+                            System.out.println("Wrong count of arguments.");
                             printHelp();
                             System.exit(0);
                         }
                         break;
-                    case "-h" :
-                    case "-help" :
+                    case "-h":
+                    case "-help":
                         printHelp();
                         System.exit(0);
                         break;
                     default:
-                        System.out.println("Unknow parametr "+args[i]);
+                        System.out.println("Unknow parametr " + args[i]);
                         printHelp();
                         System.exit(0);
-                }                
+                }
             }
         }
-        
-        
-        
-        if(port==null) {
+
+        if (port == null) {
             port = Tool.selectionPort(reader);
         }
-        
-        if(port == null) {
+
+        if (port == null) {
             System.exit(0);
         }
 
@@ -99,9 +97,10 @@ public class InboundCallExample implements InboundCallEventListener {
 
             gateway.open();
             gateway.init();
-        } catch (Exception e) {          
+        } catch (Throwable e) {
+            e.printStackTrace();
+        } finally {
             gateway.close();
-            throw e;
         }
 
         System.out.print("Now try call me.  Enter key exits program.");

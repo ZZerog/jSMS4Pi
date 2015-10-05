@@ -142,6 +142,14 @@ public class ATGateway implements Gateway {
         return port;
     }
 
+    public int getSerialSpeed() {
+        return modem.getSpeed();
+    }
+
+    public int getAtTimeOut() {
+        return modem.getAtTimeout();
+    }
+
     /**
      * Open gateway
      *
