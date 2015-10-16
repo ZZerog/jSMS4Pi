@@ -97,16 +97,16 @@ public class InboundCallExample implements InboundCallEventListener {
 
             gateway.open();
             gateway.init();
+
+            System.out.print("Now try call me.  Enter key exits program.");
+            reader.readLine();
+            
         } catch (Throwable e) {
             e.printStackTrace();
         } finally {
             gateway.close();
         }
 
-        System.out.print("Now try call me.  Enter key exits program.");
-        reader.readLine();
-
-        gateway.close();
     }
 
     @Override

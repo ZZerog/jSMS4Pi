@@ -113,25 +113,26 @@ public class ATGateway implements Gateway {
     /*
      Set Listeners
      */
+    @Override
     public void setOutboundMessageEventListener(OutboundMessageEventListener listener) {
         this.smsStatusListener = listener;
     }
 
+    @Override
     public void setInboundCallListener(InboundCallEventListener callListener) {
         this.callListener = callListener;
     }
 
+    @Override
     public void setInboundMessageListener(InboundMessageEventListener listener) {
         this.inboundMessageLinstener = listener;
     }
 
-    @Override
     public void setGlobalDeliveryReport(boolean b) {
         //TODO implemt me
         throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
     }
 
-    @Override
     public void setGlobalValidityPeriod(boolean b) {
         //TODO implemt me
         throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
@@ -209,7 +210,7 @@ public class ATGateway implements Gateway {
     public boolean init() throws GatewayException {
 
         try {
-            if (status == Status.CLOSED) {
+            if (status.getStatusCode() <= Status.CLOSED.getStatusCode()) {
                 throw new GatewayRuntimeException("Gateway is closed", port);
             }
 
@@ -218,6 +219,10 @@ public class ATGateway implements Gateway {
 
             //select optimal modem configuration
             config.selectModem(this.getManufactures());
+
+            if (!isSimReady()) {
+                return false;
+            }
 
             //print all setting
             //config.printAll();
@@ -266,16 +271,6 @@ public class ATGateway implements Gateway {
                 return false;
             }
 
-            //test for network
-            //only for info
-            if (isRegisteredIntoNetwork()) {
-                if (!sufficientSignal()) {
-                    log.warn("While modem initialization no signal");
-                }
-            } else {
-                log.warn("While modem initialization, modem doesn't registered into network");
-            }
-
             //set notification to PC
             if (!modem.send(new CNMI(
                     config.getCNMIMode(),
@@ -291,12 +286,31 @@ public class ATGateway implements Gateway {
                 log.warn("Cannot set RING notification. Inbound Call Event  is out of service!");
             }
 
-            status = Status.OPENED_INITIALIZED;
+            status = Status.INITIALIZED;
             log.info("Gateway initialized successfully");
+
+            //test for network            
+            isRegisteredIntoNetwork();
+            
+            if(status.equals(Status.NETWORK_OK)) {
+                status = Status.READY;
+            }
+
             return true;
         } catch (ModemException ex) {
             throw new GatewayException(ex, port);
         }
+    }
+
+    public boolean isAlive() {
+        try {
+            if (modem.send(new AT()).isStatusOK()) {
+                return true;
+            }
+        } catch (ModemException ex) {
+
+        }
+        return false;
     }
 
     /**
@@ -305,21 +319,21 @@ public class ATGateway implements Gateway {
      * @param message
      * @throws GatewayException
      */
+    @Override
     public void sendMessage(OutboundMessage message) throws GatewayException {
         try {
-            if (!status.equals(Status.OPENED_INITIALIZED)) {
-                throw new GatewayRuntimeException("Modem is not OPENED and INITIALIZED", port);
+            if (!status.equals(status.READY)) {
+                throw new GatewayRuntimeException("Modem is READY to send sms", port);
             }
 
             if (smsServiceAddress == null) {
                 throw new GatewayRuntimeException("Sms Service Address is empty. Set it first.", port);
             }
 
-            if (!isRegisteredIntoNetwork() || !sufficientSignal()) {
-                message.setStatus(OutboundMessage.Status.NOT_SEND_NO_SIGNAL);
-                return;
-            }
-
+//            if (!isRegisteredIntoNetwork() || !sufficientSignal()) {
+//                message.setStatus(OutboundMessage.Status.NOT_SEND_NO_SIGNAL);
+//                return;
+//            }
             if (message.isDeliveryReport()) {
                 //TODO impl. me
             }
@@ -354,7 +368,6 @@ public class ATGateway implements Gateway {
             if (matcher.matches()) {
                 switch (status) {
                     case OPENED:
-                    case OPENED_INITIALIZED: {
 
                         if (modem.send(new CSCA(address)).isStatusOK()) {
                             smsServiceAddress = address;
@@ -362,8 +375,7 @@ public class ATGateway implements Gateway {
                             throw new GatewayRuntimeException("Modem cannot accept sms service address", port);
                         }
 
-                    }
-                    break;
+                        break;
                     case CLOSED:
                         smsServiceAddress = address;
                         break;
@@ -530,29 +542,29 @@ public class ATGateway implements Gateway {
         if (!cregq.useSMS()) {
             return false;
         }
+        this.status = Status.NETWORK_OK;
         return true;
     }
 
-    /**
-     * Return true if modem have any signal
-     *
-     * @return
-     * @throws ModemException
-     */
-    //TODO co se stane kdyz zavolam totu metodu a pritom telefon nebude zaregistrovat ??
-    private boolean sufficientSignal() throws ModemException {
-        //network signal stranche
-        CSQ csq = new CSQ();
-        if (!modem.send(csq).isStatusOK()) {
-            return false;
-        }
-
-        if (csq.getRawValue() <= 1) {
-            return false;
-        }
-        return true;
-    }
-
+//    /**
+//     * Return true if modem have any signal
+//     *
+//     * @return
+//     * @throws ModemException
+//     */
+//
+//    private boolean sufficientSignal() throws ModemException {
+//        //network signal stranche
+//        CSQ csq = new CSQ();
+//        if (!modem.send(csq).isStatusOK()) {
+//            return false;
+//        }
+//
+//        if (csq.getRawValue() <= 1) {
+//            return false;
+//        }
+//        return true;
+//    }
     private ModemInformation getManufactures() throws ModemException {
         ModemInformation info = new ModemInformation();
 
@@ -580,11 +592,42 @@ public class ATGateway implements Gateway {
         config.selectModem(this.getManufactures());
     }
 
+    private boolean isSimReady() throws ModemException {
+        CPINquestion cpinq = new CPINquestion();
+        if (modem.send(cpinq).isStatusOK()) {
+            if (cpinq.getPinStatus() == CPINquestion.PinStatus.READY) {
+                this.status = Status.SIM_OK;
+                return true;
+            }
+        }
+        return false;
+    }
+
+    @Override
+    public boolean isReadyToSend() {
+        return status.equals(Status.READY);
+    }
+
     /**
      * Gateway status
      */
     public enum Status {
 
-        OPENED, OPENED_INITIALIZED, CLOSED;
+        CLOSED(0),
+        OPENED(1),
+        SIM_OK(2),
+        INITIALIZED(3),
+        NETWORK_OK(4),
+        READY(5),; //uzavren
+
+        private final int code;
+
+        private Status(int code) {
+            this.code = code;
+        }
+
+        public int getStatusCode() {
+            return code;
+        }
     }
 }

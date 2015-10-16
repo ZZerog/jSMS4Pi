@@ -21,30 +21,43 @@ package cz.zerog.jsms4pi;
  * <http://www.gnu.org/licenses/lgpl-3.0.html>.
  * #L%
  */
-
+import cz.zerog.jsms4pi.event.InboundCallEventListener;
+import cz.zerog.jsms4pi.event.InboundMessageEventListener;
+import cz.zerog.jsms4pi.event.OutboundMessageEventListener;
 import cz.zerog.jsms4pi.exception.GatewayException;
+import cz.zerog.jsms4pi.message.OutboundMessage;
 import cz.zerog.jsms4pi.notification.Notification;
-
-
 
 /**
  *
  * @author zerog
  */
-public interface Gateway  {
-    
-    public void open() throws Exception ;
+public interface Gateway {
 
-    public void close() throws Exception ;        
+    public void open() throws Exception;
+
+    public void close() throws Exception;
 
     public boolean init() throws GatewayException;
+//
+//    public void setGlobalDeliveryReport(boolean report);
+//
+//    public void setGlobalValidityPeriod(boolean period);
 
-    public void setGlobalDeliveryReport(boolean report);
-
-    public void setGlobalValidityPeriod(boolean period);
-    
     public String getPortName();
 
     void notify(Notification notifi);
+
+    public void setOutboundMessageEventListener(OutboundMessageEventListener listener);
+
+    public void setInboundCallListener(InboundCallEventListener callListener);
+
+    public void setInboundMessageListener(InboundMessageEventListener listener);
+    
+    public boolean isReadyToSend();
+    
+    public void sendMessage(OutboundMessage message) throws GatewayException;
+    
+    public boolean isAlive();
 
 }

@@ -1,0 +1,494 @@
+JAVA PROFILE 1.0.1, created Mon Oct  5 13:58:03 2015
+
+Copyright (c) 2003, 2005, Oracle and/or its affiliates. All rights reserved.
+
+Redistribution and use in source and binary forms, with or without
+modification, are permitted provided that the following conditions
+are met:
+
+  - Redistributions of source code must retain the above copyright
+    notice, this list of conditions and the following disclaimer.
+
+  - Redistributions in binary form must reproduce the above copyright
+    notice, this list of conditions and the following disclaimer in the
+    documentation and/or other materials provided with the distribution.
+
+  - Neither the name of Oracle nor the names of its
+    contributors may be used to endorse or promote products derived
+    from this software without specific prior written permission.
+
+THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS
+IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO,
+THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR
+PURPOSE ARE DISCLAIMED.  IN NO EVENT SHALL THE COPYRIGHT OWNER OR
+CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
+EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
+PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR
+PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF
+LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING
+NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
+SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+
+
+Header for -agentlib:hprof (or -Xrunhprof) ASCII Output (JDK 5.0 JVMTI based)
+
+WARNING!  This file format is under development, and is subject to
+change without notice.
+
+This file contains the following types of records:
+
+THREAD START
+THREAD END      mark the lifetime of Java threads
+
+TRACE           represents a Java stack trace.  Each trace consists
+                of a series of stack frames.  Other records refer to
+                TRACEs to identify (1) where object allocations have
+                taken place, (2) the frames in which GC roots were
+                found, and (3) frequently executed methods.
+
+HEAP DUMP       is a complete snapshot of all live objects in the Java
+                heap.  Following distinctions are made:
+
+                ROOT    root set as determined by GC
+                CLS     classes 
+                OBJ     instances
+                ARR     arrays
+
+SITES           is a sorted list of allocation sites.  This identifies
+                the most heavily allocated object types, and the TRACE
+                at which those allocations occurred.
+
+CPU SAMPLES     is a statistical profile of program execution.  The VM
+                periodically samples all running threads, and assigns
+                a quantum to active TRACEs in those threads.  Entries
+                in this record are TRACEs ranked by the percentage of
+                total quanta they consumed; top-ranked TRACEs are
+                typically hot spots in the program.
+
+CPU TIME        is a profile of program execution obtained by measuring
+                the time spent in individual methods (excluding the time
+                spent in callees), as well as by counting the number of
+                times each method is called. Entries in this record are
+                TRACEs ranked by the percentage of total CPU time. The
+                "count" field indicates the number of times each TRACE 
+                is invoked.
+
+MONITOR TIME    is a profile of monitor contention obtained by measuring
+                the time spent by a thread waiting to enter a monitor.
+                Entries in this record are TRACEs ranked by the percentage
+                of total monitor contention time and a brief description
+                of the monitor.  The "count" field indicates the number of 
+                times the monitor was contended at that TRACE.
+
+MONITOR DUMP    is a complete snapshot of all the monitors and threads in 
+                the System.
+
+HEAP DUMP, SITES, CPU SAMPLES|TIME and MONITOR DUMP|TIME records are generated 
+at program exit.  They can also be obtained during program execution by typing 
+Ctrl-\ (on Solaris) or by typing Ctrl-Break (on Win32).
+
+--------
+
+THREAD START (obj=5000017a, id = 200002, name="HPROF gc_finish watcher", group="system")
+THREAD START (obj=5000017a, id = 200001, name="main", group="main")
+THREAD START (obj=50000569, id = 200003, name="SerialNotifyThread", group="main")
+THREAD START (obj=5000056f, id = 200004, name="EventThread /dev/ttyUSB6", group="main")
+THREAD END (id = 200004)
+THREAD START (obj=50000569, id = 200005, name="SerialNotifyThread", group="main")
+THREAD START (obj=5000017a, id = 200007, name="SIGINT handler", group="system")
+THREAD START (obj=5000017a, id = 200008, name="log4j-shutdown", group="main")
+THREAD START (obj=50000578, id = 200009, name="Thread-0", group="main")
+THREAD END (id = 200009)
+THREAD END (id = 200008)
+THREAD END (id = 200007)
+TRACE 303192:
+	jssc.SerialPortList.getUnixBasedPortNames(SerialPortList.java:Unknown line)
+	jssc.SerialPortList.getPortNames(SerialPortList.java:Unknown line)
+	jssc.SerialPortList.getPortNames(SerialPortList.java:Unknown line)
+	cz.zerog.jsms4pi.tool.ModemSeeker.scan(ModemSeeker.java:Unknown line)
+TRACE 318018:
+	jssc.SerialPort.openPort(SerialPort.java:Unknown line)
+	cz.zerog.jsms4pi.SerialModem.open(SerialModem.java:Unknown line)
+	cz.zerog.jsms4pi.tool.ModemSeeker.scan(ModemSeeker.java:Unknown line)
+	cz.zerog.jsms4pi.tool.ModemSeeker.main(ModemSeeker.java:Unknown line)
+TRACE 317987:
+	org.apache.logging.log4j.core.Logger$PrivateConfig.filter(Logger.java:Unknown line)
+	org.apache.logging.log4j.core.Logger.isEnabled(Logger.java:Unknown line)
+	org.apache.logging.log4j.spi.AbstractLogger.logIfEnabled(AbstractLogger.java:Unknown line)
+	org.apache.logging.log4j.spi.AbstractLogger.info(AbstractLogger.java:Unknown line)
+TRACE 318037:
+	jssc.SerialPort.setParams(SerialPort.java:Unknown line)
+	jssc.SerialPort.setParams(SerialPort.java:Unknown line)
+	cz.zerog.jsms4pi.SerialModem.open(SerialModem.java:Unknown line)
+	cz.zerog.jsms4pi.tool.ModemSeeker.scan(ModemSeeker.java:Unknown line)
+TRACE 318439:
+	jssc.SerialPort.closePort(SerialPort.java:Unknown line)
+	cz.zerog.jsms4pi.SerialModem.close(SerialModem.java:Unknown line)
+	cz.zerog.jsms4pi.tool.ModemSeeker.scan(ModemSeeker.java:Unknown line)
+	cz.zerog.jsms4pi.tool.ModemSeeker.main(ModemSeeker.java:Unknown line)
+TRACE 317988:
+	org.apache.logging.log4j.core.Logger.isEnabled(Logger.java:Unknown line)
+	org.apache.logging.log4j.spi.AbstractLogger.logIfEnabled(AbstractLogger.java:Unknown line)
+	org.apache.logging.log4j.spi.AbstractLogger.info(AbstractLogger.java:Unknown line)
+	cz.zerog.jsms4pi.NullGateway.notify(NullGateway.java:Unknown line)
+TRACE 317989:
+	org.apache.logging.log4j.spi.AbstractLogger.logIfEnabled(AbstractLogger.java:Unknown line)
+	org.apache.logging.log4j.spi.AbstractLogger.info(AbstractLogger.java:Unknown line)
+	cz.zerog.jsms4pi.NullGateway.notify(NullGateway.java:Unknown line)
+	cz.zerog.jsms4pi.SerialModem.run(SerialModem.java:Unknown line)
+TRACE 317991:
+	cz.zerog.jsms4pi.NullGateway.notify(NullGateway.java:Unknown line)
+	cz.zerog.jsms4pi.SerialModem.run(SerialModem.java:Unknown line)
+TRACE 317978:
+	java.util.concurrent.LinkedBlockingQueue.poll(LinkedBlockingQueue.java:Unknown line)
+	cz.zerog.jsms4pi.SerialModem.run(SerialModem.java:Unknown line)
+TRACE 317990:
+	org.apache.logging.log4j.spi.AbstractLogger.info(AbstractLogger.java:Unknown line)
+	cz.zerog.jsms4pi.NullGateway.notify(NullGateway.java:Unknown line)
+	cz.zerog.jsms4pi.SerialModem.run(SerialModem.java:Unknown line)
+TRACE 317984:
+	org.apache.logging.log4j.core.config.DefaultConfigurationMonitor.checkConfiguration(DefaultConfigurationMonitor.java:Unknown line)
+	org.apache.logging.log4j.core.Logger$PrivateConfig.filter(Logger.java:Unknown line)
+	org.apache.logging.log4j.core.Logger.isEnabled(Logger.java:Unknown line)
+	org.apache.logging.log4j.spi.AbstractLogger.logIfEnabled(AbstractLogger.java:Unknown line)
+TRACE 317983:
+	org.apache.logging.log4j.core.config.AbstractConfiguration.getConfigurationMonitor(AbstractConfiguration.java:Unknown line)
+	org.apache.logging.log4j.core.Logger$PrivateConfig.filter(Logger.java:Unknown line)
+	org.apache.logging.log4j.core.Logger.isEnabled(Logger.java:Unknown line)
+	org.apache.logging.log4j.spi.AbstractLogger.logIfEnabled(AbstractLogger.java:Unknown line)
+TRACE 317985:
+	org.apache.logging.log4j.core.filter.AbstractFilterable.getFilter(AbstractFilterable.java:Unknown line)
+	org.apache.logging.log4j.core.Logger$PrivateConfig.filter(Logger.java:Unknown line)
+	org.apache.logging.log4j.core.Logger.isEnabled(Logger.java:Unknown line)
+	org.apache.logging.log4j.spi.AbstractLogger.logIfEnabled(AbstractLogger.java:Unknown line)
+TRACE 317986:
+	org.apache.logging.log4j.Level.intLevel(Level.java:Unknown line)
+	org.apache.logging.log4j.core.Logger$PrivateConfig.filter(Logger.java:Unknown line)
+	org.apache.logging.log4j.core.Logger.isEnabled(Logger.java:Unknown line)
+	org.apache.logging.log4j.spi.AbstractLogger.logIfEnabled(AbstractLogger.java:Unknown line)
+TRACE 317977:
+	java.util.concurrent.atomic.AtomicInteger.get(AtomicInteger.java:Unknown line)
+	java.util.concurrent.LinkedBlockingQueue.poll(LinkedBlockingQueue.java:Unknown line)
+	cz.zerog.jsms4pi.SerialModem.run(SerialModem.java:Unknown line)
+TRACE 318326:
+	cz.zerog.jsms4pi.SerialModem.send(SerialModem.java:Unknown line)
+	cz.zerog.jsms4pi.tool.ModemSeeker.scan(ModemSeeker.java:Unknown line)
+	cz.zerog.jsms4pi.tool.ModemSeeker.main(ModemSeeker.java:Unknown line)
+TRACE 318144:
+	java.lang.Thread.sleep(Thread.java:Unknown line)
+	jssc.SerialPort$LinuxEventThread.run(SerialPort.java:Unknown line)
+TRACE 319119:
+	java.lang.Thread.join(Thread.java:Unknown line)
+	java.lang.Thread.join(Thread.java:Unknown line)
+	java.lang.ApplicationShutdownHooks.runHooks(ApplicationShutdownHooks.java:Unknown line)
+	java.lang.ApplicationShutdownHooks$1.run(ApplicationShutdownHooks.java:Unknown line)
+TRACE 300609:
+	java.lang.String.startsWith(String.java:Unknown line)
+	sun.misc.MetaIndex.mayContain(MetaIndex.java:Unknown line)
+	sun.misc.URLClassPath$JarLoader.getResource(URLClassPath.java:Unknown line)
+	sun.misc.URLClassPath.getResource(URLClassPath.java:Unknown line)
+TRACE 318433:
+	jssc.SerialPort$LinuxEventThread.run(SerialPort.java:Unknown line)
+TRACE 302456:
+	java.lang.ClassLoader.defineClass(ClassLoader.java:Unknown line)
+	java.security.SecureClassLoader.defineClass(SecureClassLoader.java:Unknown line)
+	java.net.URLClassLoader.defineClass(URLClassLoader.java:Unknown line)
+	java.net.URLClassLoader.access$100(URLClassLoader.java:Unknown line)
+TRACE 313797:
+	java.lang.String$CaseInsensitiveComparator.compare(String.java:Unknown line)
+	java.lang.String$CaseInsensitiveComparator.compare(String.java:Unknown line)
+	java.util.TreeMap.put(TreeMap.java:Unknown line)
+	javax.management.ImmutableDescriptor.<init>(ImmutableDescriptor.java:Unknown line)
+TRACE 318137:
+	jssc.SerialPort$EventThread.access$500(SerialPort.java:Unknown line)
+	jssc.SerialPort$LinuxEventThread.run(SerialPort.java:Unknown line)
+TRACE 305690:
+	sun.reflect.generics.parser.SignatureParser.parseIdentifier(SignatureParser.java:Unknown line)
+	sun.reflect.generics.parser.SignatureParser.parsePackageNameAndSimpleClassTypeSignature(SignatureParser.java:Unknown line)
+	sun.reflect.generics.parser.SignatureParser.parseClassTypeSignature(SignatureParser.java:Unknown line)
+	sun.reflect.generics.parser.SignatureParser.parseFieldTypeSignature(SignatureParser.java:Unknown line)
+TRACE 313756:
+	java.lang.String.charAt(String.java:Unknown line)
+	java.lang.String$CaseInsensitiveComparator.compare(String.java:Unknown line)
+	java.lang.String$CaseInsensitiveComparator.compare(String.java:Unknown line)
+	java.util.TreeMap.put(TreeMap.java:Unknown line)
+TRACE 300610:
+	sun.misc.MetaIndex.mayContain(MetaIndex.java:Unknown line)
+	sun.misc.URLClassPath$JarLoader.getResource(URLClassPath.java:Unknown line)
+	sun.misc.URLClassPath.getResource(URLClassPath.java:Unknown line)
+	java.net.URLClassLoader$1.run(URLClassLoader.java:Unknown line)
+TRACE 313795:
+	java.lang.String$CaseInsensitiveComparator.compare(String.java:Unknown line)
+	java.lang.String$CaseInsensitiveComparator.compare(String.java:Unknown line)
+	java.util.TreeMap.getEntryUsingComparator(TreeMap.java:Unknown line)
+	java.util.TreeMap.getEntry(TreeMap.java:Unknown line)
+TRACE 313759:
+	java.lang.Character.toUpperCase(Character.java:Unknown line)
+	java.lang.Character.toUpperCase(Character.java:Unknown line)
+	java.lang.String$CaseInsensitiveComparator.compare(String.java:Unknown line)
+	java.lang.String$CaseInsensitiveComparator.compare(String.java:Unknown line)
+TRACE 313763:
+	java.lang.Character.toLowerCase(Character.java:Unknown line)
+	java.lang.Character.toLowerCase(Character.java:Unknown line)
+	java.lang.String$CaseInsensitiveComparator.compare(String.java:Unknown line)
+	java.lang.String$CaseInsensitiveComparator.compare(String.java:Unknown line)
+TRACE 300608:
+	java.lang.String.startsWith(String.java:Unknown line)
+	java.lang.String.startsWith(String.java:Unknown line)
+	sun.misc.MetaIndex.mayContain(MetaIndex.java:Unknown line)
+	sun.misc.URLClassPath$JarLoader.getResource(URLClassPath.java:Unknown line)
+TRACE 300614:
+	sun.misc.URLClassPath.getResource(URLClassPath.java:Unknown line)
+	java.net.URLClassLoader$1.run(URLClassLoader.java:Unknown line)
+	java.net.URLClassLoader$1.run(URLClassLoader.java:Unknown line)
+	java.net.URLClassLoader.findClass(URLClassLoader.java:Unknown line)
+TRACE 313749:
+	java.lang.String$CaseInsensitiveComparator.compare(String.java:Unknown line)
+	java.lang.String$CaseInsensitiveComparator.compare(String.java:Unknown line)
+	java.util.TreeMap.compare(TreeMap.java:Unknown line)
+	java.util.TreeMap.put(TreeMap.java:Unknown line)
+TRACE 300985:
+	java.util.zip.ZipCoder.getBytes(ZipCoder.java:Unknown line)
+	java.util.zip.ZipFile.getEntry(ZipFile.java:Unknown line)
+	java.util.jar.JarFile.getEntry(JarFile.java:Unknown line)
+	java.util.jar.JarFile.getJarEntry(JarFile.java:Unknown line)
+TRACE 305681:
+	java.lang.Character.isWhitespace(Character.java:Unknown line)
+	java.lang.Character.isWhitespace(Character.java:Unknown line)
+	sun.reflect.generics.parser.SignatureParser.parseIdentifier(SignatureParser.java:Unknown line)
+	sun.reflect.generics.parser.SignatureParser.parsePackageNameAndSimpleClassTypeSignature(SignatureParser.java:Unknown line)
+TRACE 302604:
+	java.util.concurrent.ConcurrentHashMap.transfer(ConcurrentHashMap.java:Unknown line)
+	java.util.concurrent.ConcurrentHashMap.addCount(ConcurrentHashMap.java:Unknown line)
+	java.util.concurrent.ConcurrentHashMap.putVal(ConcurrentHashMap.java:Unknown line)
+	java.util.concurrent.ConcurrentHashMap.putIfAbsent(ConcurrentHashMap.java:Unknown line)
+TRACE 313762:
+	java.lang.CharacterDataLatin1.toLowerCase(CharacterDataLatin1.java:Unknown line)
+	java.lang.Character.toLowerCase(Character.java:Unknown line)
+	java.lang.Character.toLowerCase(Character.java:Unknown line)
+	java.lang.String$CaseInsensitiveComparator.compare(String.java:Unknown line)
+TRACE 301722:
+	sun.misc.ASCIICaseInsensitiveComparator.compare(ASCIICaseInsensitiveComparator.java:Unknown line)
+	sun.misc.ASCIICaseInsensitiveComparator.compare(ASCIICaseInsensitiveComparator.java:Unknown line)
+	java.util.jar.Attributes$Name.equals(Attributes.java:Unknown line)
+	java.util.HashMap.getNode(HashMap.java:Unknown line)
+TRACE 302125:
+	java.util.zip.Inflater.inflate(Inflater.java:Unknown line)
+	java.util.zip.InflaterInputStream.read(InflaterInputStream.java:Unknown line)
+	sun.misc.Resource.getBytes(Resource.java:Unknown line)
+	java.net.URLClassLoader.defineClass(URLClassLoader.java:Unknown line)
+TRACE 305677:
+	sun.reflect.generics.parser.SignatureParser.current(SignatureParser.java:Unknown line)
+	sun.reflect.generics.parser.SignatureParser.parseIdentifier(SignatureParser.java:Unknown line)
+	sun.reflect.generics.parser.SignatureParser.parsePackageNameAndSimpleClassTypeSignature(SignatureParser.java:Unknown line)
+	sun.reflect.generics.parser.SignatureParser.parseClassTypeSignature(SignatureParser.java:Unknown line)
+TRACE 300378:
+	java.util.concurrent.ConcurrentHashMap.putVal(ConcurrentHashMap.java:Unknown line)
+	java.util.concurrent.ConcurrentHashMap.putIfAbsent(ConcurrentHashMap.java:Unknown line)
+	java.lang.ClassLoader.getClassLoadingLock(ClassLoader.java:Unknown line)
+	java.lang.ClassLoader.loadClass(ClassLoader.java:Unknown line)
+TRACE 300398:
+	java.lang.ClassLoader.findBootstrapClassOrNull(ClassLoader.java:Unknown line)
+	java.lang.ClassLoader.loadClass(ClassLoader.java:Unknown line)
+	java.lang.ClassLoader.loadClass(ClassLoader.java:Unknown line)
+	sun.misc.Launcher$AppClassLoader.loadClass(Launcher.java:Unknown line)
+TRACE 300628:
+	java.net.URLClassLoader.findClass(URLClassLoader.java:Unknown line)
+	java.lang.ClassLoader.loadClass(ClassLoader.java:Unknown line)
+	java.lang.ClassLoader.loadClass(ClassLoader.java:Unknown line)
+	sun.misc.Launcher$AppClassLoader.loadClass(Launcher.java:Unknown line)
+TRACE 313792:
+	java.lang.String.charAt(String.java:Unknown line)
+	java.lang.String$CaseInsensitiveComparator.compare(String.java:Unknown line)
+	java.lang.String$CaseInsensitiveComparator.compare(String.java:Unknown line)
+	java.util.TreeMap.getEntryUsingComparator(TreeMap.java:Unknown line)
+TRACE 300430:
+	java.lang.CharacterDataLatin1.getProperties(CharacterDataLatin1.java:Unknown line)
+	java.lang.CharacterDataLatin1.toLowerCase(CharacterDataLatin1.java:Unknown line)
+	java.lang.Character.toLowerCase(Character.java:Unknown line)
+	java.lang.Character.toLowerCase(Character.java:Unknown line)
+TRACE 300611:
+	sun.misc.URLClassPath$JarLoader.getResource(URLClassPath.java:Unknown line)
+	sun.misc.URLClassPath.getResource(URLClassPath.java:Unknown line)
+	java.net.URLClassLoader$1.run(URLClassLoader.java:Unknown line)
+	java.net.URLClassLoader$1.run(URLClassLoader.java:Unknown line)
+TRACE 301905:
+	sun.net.www.protocol.jar.Handler.parseURL(Handler.java:Unknown line)
+	java.net.URL.<init>(URL.java:Unknown line)
+	java.net.URL.<init>(URL.java:Unknown line)
+	sun.misc.URLClassPath$JarLoader.checkResource(URLClassPath.java:Unknown line)
+TRACE 302435:
+	java.lang.ClassLoader.loadClass(ClassLoader.java:Unknown line)
+	java.lang.ClassLoader.loadClass(ClassLoader.java:Unknown line)
+	sun.misc.Launcher$AppClassLoader.loadClass(Launcher.java:Unknown line)
+	java.lang.ClassLoader.loadClass(ClassLoader.java:Unknown line)
+TRACE 305680:
+	java.lang.CharacterDataLatin1.isWhitespace(CharacterDataLatin1.java:Unknown line)
+	java.lang.Character.isWhitespace(Character.java:Unknown line)
+	java.lang.Character.isWhitespace(Character.java:Unknown line)
+	sun.reflect.generics.parser.SignatureParser.parseIdentifier(SignatureParser.java:Unknown line)
+TRACE 313758:
+	java.lang.CharacterDataLatin1.toUpperCase(CharacterDataLatin1.java:Unknown line)
+	java.lang.Character.toUpperCase(Character.java:Unknown line)
+	java.lang.Character.toUpperCase(Character.java:Unknown line)
+	java.lang.String$CaseInsensitiveComparator.compare(String.java:Unknown line)
+TRACE 300607:
+	sun.misc.URLClassPath.getLoader(URLClassPath.java:Unknown line)
+	sun.misc.URLClassPath.getResource(URLClassPath.java:Unknown line)
+	java.net.URLClassLoader$1.run(URLClassLoader.java:Unknown line)
+	java.net.URLClassLoader$1.run(URLClassLoader.java:Unknown line)
+TRACE 300625:
+	java.net.URLClassLoader$1.run(URLClassLoader.java:Unknown line)
+	java.net.URLClassLoader$1.run(URLClassLoader.java:Unknown line)
+	java.net.URLClassLoader.findClass(URLClassLoader.java:Unknown line)
+	java.lang.ClassLoader.loadClass(ClassLoader.java:Unknown line)
+TRACE 301442:
+	java.util.Date.<init>(Date.java:Unknown line)
+	java.util.zip.ZipUtils.dosToJavaTime(ZipUtils.java:Unknown line)
+	java.util.zip.ZipFile.getZipEntry(ZipFile.java:Unknown line)
+	java.util.zip.ZipFile.getEntry(ZipFile.java:Unknown line)
+TRACE 302429:
+	java.net.URLStreamHandler.toExternalForm(URLStreamHandler.java:Unknown line)
+	java.net.URL.toExternalForm(URL.java:Unknown line)
+	java.net.URL.toString(URL.java:Unknown line)
+	java.lang.ClassLoader.defineClassSourceLocation(ClassLoader.java:Unknown line)
+TRACE 306974:
+	java.lang.String.charAt(String.java:Unknown line)
+	java.io.DataOutputStream.writeUTF(DataOutputStream.java:Unknown line)
+	java.io.DataOutputStream.writeUTF(DataOutputStream.java:Unknown line)
+	sun.misc.ProxyGenerator$ConstantPool$ValueEntry.write(ProxyGenerator.java:Unknown line)
+TRACE 306981:
+	java.io.DataOutputStream.writeUTF(DataOutputStream.java:Unknown line)
+	java.io.DataOutputStream.writeUTF(DataOutputStream.java:Unknown line)
+	sun.misc.ProxyGenerator$ConstantPool$ValueEntry.write(ProxyGenerator.java:Unknown line)
+	sun.misc.ProxyGenerator$ConstantPool.write(ProxyGenerator.java:Unknown line)
+TRACE 308927:
+	sun.misc.MetaIndex.mayContain(MetaIndex.java:Unknown line)
+	sun.misc.URLClassPath$JarLoader.getResource(URLClassPath.java:Unknown line)
+	sun.misc.URLClassPath.getResource(URLClassPath.java:Unknown line)
+	sun.misc.URLClassPath.getResource(URLClassPath.java:Unknown line)
+TRACE 313884:
+	java.lang.String.charAt(String.java:Unknown line)
+	java.lang.String$CaseInsensitiveComparator.compare(String.java:Unknown line)
+	java.lang.String$CaseInsensitiveComparator.compare(String.java:Unknown line)
+	java.util.Arrays.binarySearch0(Arrays.java:Unknown line)
+TRACE 313885:
+	java.lang.String$CaseInsensitiveComparator.compare(String.java:Unknown line)
+	java.lang.String$CaseInsensitiveComparator.compare(String.java:Unknown line)
+	java.util.Arrays.binarySearch0(Arrays.java:Unknown line)
+	java.util.Arrays.binarySearch(Arrays.java:Unknown line)
+TRACE 301171:
+	java.io.BufferedInputStream.read(BufferedInputStream.java:Unknown line)
+	java.io.DataInputStream.readShort(DataInputStream.java:Unknown line)
+	sun.util.calendar.ZoneInfoFile.load(ZoneInfoFile.java:Unknown line)
+	sun.util.calendar.ZoneInfoFile.access$000(ZoneInfoFile.java:Unknown line)
+TRACE 301765:
+	java.lang.CharacterDataLatin1.toLowerCase(CharacterDataLatin1.java:Unknown line)
+	java.lang.Character.toLowerCase(Character.java:Unknown line)
+	java.lang.Character.toLowerCase(Character.java:Unknown line)
+	java.lang.String.regionMatches(String.java:Unknown line)
+TRACE 303802:
+	java.lang.String.startsWith(String.java:Unknown line)
+	sun.misc.MetaIndex.mayContain(MetaIndex.java:Unknown line)
+	sun.misc.URLClassPath$JarLoader.getResource(URLClassPath.java:Unknown line)
+	sun.misc.URLClassPath$JarLoader.findResource(URLClassPath.java:Unknown line)
+TRACE 304702:
+	java.lang.reflect.Method.equals(Method.java:Unknown line)
+	java.lang.Class$MethodArray.addIfNotPresent(Class.java:Unknown line)
+	java.lang.Class$MethodArray.addAllIfNotPresent(Class.java:Unknown line)
+	java.lang.Class.privateGetPublicMethods(Class.java:Unknown line)
+TRACE 305682:
+	java.lang.Character.isWhitespace(Character.java:Unknown line)
+	sun.reflect.generics.parser.SignatureParser.parseIdentifier(SignatureParser.java:Unknown line)
+	sun.reflect.generics.parser.SignatureParser.parsePackageNameAndSimpleClassTypeSignature(SignatureParser.java:Unknown line)
+	sun.reflect.generics.parser.SignatureParser.parseClassTypeSignature(SignatureParser.java:Unknown line)
+TRACE 305684:
+	java.lang.AbstractStringBuilder.append(AbstractStringBuilder.java:Unknown line)
+	java.lang.StringBuilder.append(StringBuilder.java:Unknown line)
+	sun.reflect.generics.parser.SignatureParser.parseIdentifier(SignatureParser.java:Unknown line)
+	sun.reflect.generics.parser.SignatureParser.parsePackageNameAndSimpleClassTypeSignature(SignatureParser.java:Unknown line)
+TRACE 305685:
+	java.lang.StringBuilder.append(StringBuilder.java:Unknown line)
+	sun.reflect.generics.parser.SignatureParser.parseIdentifier(SignatureParser.java:Unknown line)
+	sun.reflect.generics.parser.SignatureParser.parsePackageNameAndSimpleClassTypeSignature(SignatureParser.java:Unknown line)
+	sun.reflect.generics.parser.SignatureParser.parseClassTypeSignature(SignatureParser.java:Unknown line)
+TRACE 313748:
+	java.lang.String.charAt(String.java:Unknown line)
+	java.lang.String$CaseInsensitiveComparator.compare(String.java:Unknown line)
+	java.lang.String$CaseInsensitiveComparator.compare(String.java:Unknown line)
+	java.util.TreeMap.compare(TreeMap.java:Unknown line)
+TRACE 313757:
+	java.lang.CharacterData.of(CharacterData.java:Unknown line)
+	java.lang.Character.toUpperCase(Character.java:Unknown line)
+	java.lang.Character.toUpperCase(Character.java:Unknown line)
+	java.lang.String$CaseInsensitiveComparator.compare(String.java:Unknown line)
+CPU TIME (ms) BEGIN (total = 72055) Mon Oct  5 13:58:49 2015
+rank   self  accum   count trace method
+   1 27.75% 27.75%       1 303192 jssc.SerialPortList.getUnixBasedPortNames
+   2 13.87% 41.62%       2 318018 jssc.SerialPort.openPort
+   3 10.59% 52.21%  994609 317987 org.apache.logging.log4j.core.Logger$PrivateConfig.filter
+   4  6.94% 59.15%       1 318037 jssc.SerialPort.setParams
+   5  6.94% 66.09%       1 318439 jssc.SerialPort.closePort
+   6  3.88% 69.97%  994609 317988 org.apache.logging.log4j.core.Logger.isEnabled
+   7  3.78% 73.74%  994609 317989 org.apache.logging.log4j.spi.AbstractLogger.logIfEnabled
+   8  3.72% 77.46%  994607 317991 cz.zerog.jsms4pi.NullGateway.notify
+   9  3.69% 81.15%  994609 317978 java.util.concurrent.LinkedBlockingQueue.poll
+  10  3.68% 84.83%  994609 317990 org.apache.logging.log4j.spi.AbstractLogger.info
+  11  1.70% 86.54%  994609 317984 org.apache.logging.log4j.core.config.DefaultConfigurationMonitor.checkConfiguration
+  12  1.70% 88.23%  994609 317983 org.apache.logging.log4j.core.config.AbstractConfiguration.getConfigurationMonitor
+  13  1.69% 89.92%  994609 317985 org.apache.logging.log4j.core.filter.AbstractFilterable.getFilter
+  14  1.65% 91.57%  994609 317986 org.apache.logging.log4j.Level.intLevel
+  15  1.64% 93.21%  994609 317977 java.util.concurrent.atomic.AtomicInteger.get
+  16  1.39% 94.60%       1 318326 cz.zerog.jsms4pi.SerialModem.send
+  17  1.31% 95.91%     878 318144 java.lang.Thread.sleep
+  18  0.11% 96.02%       2 319119 java.lang.Thread.join
+  19  0.06% 96.08%   17700 300609 java.lang.String.startsWith
+  20  0.06% 96.14%       1 318433 jssc.SerialPort$LinuxEventThread.run
+  21  0.04% 96.18%     277 302456 java.lang.ClassLoader.defineClass
+  22  0.04% 96.22%    1150 313797 java.lang.String$CaseInsensitiveComparator.compare
+  23  0.03% 96.26%   10537 318137 jssc.SerialPort$EventThread.access$500
+  24  0.03% 96.29%     665 305690 sun.reflect.generics.parser.SignatureParser.parseIdentifier
+  25  0.03% 96.32%   18650 313756 java.lang.String.charAt
+  26  0.03% 96.35%    2673 300610 sun.misc.MetaIndex.mayContain
+  27  0.03% 96.38%    1150 313795 java.lang.String$CaseInsensitiveComparator.compare
+  28  0.03% 96.40%    5706 313759 java.lang.Character.toUpperCase
+  29  0.03% 96.43%    5706 313763 java.lang.Character.toLowerCase
+  30  0.02% 96.46%   22176 300608 java.lang.String.startsWith
+  31  0.02% 96.48%     594 300614 sun.misc.URLClassPath.getResource
+  32  0.02% 96.50%     559 313749 java.lang.String$CaseInsensitiveComparator.compare
+  33  0.02% 96.53%    1467 300985 java.util.zip.ZipCoder.getBytes
+  34  0.02% 96.55%    4649 305681 java.lang.Character.isWhitespace
+  35  0.02% 96.57%      14 302604 java.util.concurrent.ConcurrentHashMap.transfer
+  36  0.02% 96.59%    5706 313762 java.lang.CharacterDataLatin1.toLowerCase
+  37  0.02% 96.61%     198 301722 sun.misc.ASCIICaseInsensitiveComparator.compare
+  38  0.02% 96.63%     913 302125 java.util.zip.Inflater.inflate
+  39  0.02% 96.65%    9298 305677 sun.reflect.generics.parser.SignatureParser.current
+  40  0.02% 96.67%     999 300378 java.util.concurrent.ConcurrentHashMap.putVal
+  41  0.02% 96.68%     438 300398 java.lang.ClassLoader.findBootstrapClassOrNull
+  42  0.02% 96.70%     594 300628 java.net.URLClassLoader.findClass
+  43  0.02% 96.72%   16806 313792 java.lang.String.charAt
+  44  0.02% 96.74%    7758 300430 java.lang.CharacterDataLatin1.getProperties
+  45  0.02% 96.75%    3774 300611 sun.misc.URLClassPath$JarLoader.getResource
+  46  0.02% 96.77%     280 301905 sun.net.www.protocol.jar.Handler.parseURL
+  47  0.02% 96.78%     438 302435 java.lang.ClassLoader.loadClass
+  48  0.02% 96.80%    4657 305680 java.lang.CharacterDataLatin1.isWhitespace
+  49  0.02% 96.81%    5706 313758 java.lang.CharacterDataLatin1.toUpperCase
+  50  0.01% 96.83%    4091 300607 sun.misc.URLClassPath.getLoader
+  51  0.01% 96.84%     594 300625 java.net.URLClassLoader$1.run
+  52  0.01% 96.85%     291 301442 java.util.Date.<init>
+  53  0.01% 96.87%     277 302429 java.net.URLStreamHandler.toExternalForm
+  54  0.01% 96.88%   10426 306974 java.lang.String.charAt
+  55  0.01% 96.90%     282 306981 java.io.DataOutputStream.writeUTF
+  56  0.01% 96.91%     492 308927 sun.misc.MetaIndex.mayContain
+  57  0.01% 96.92%    6000 313884 java.lang.String.charAt
+  58  0.01% 96.94%     560 313885 java.lang.String$CaseInsensitiveComparator.compare
+  59  0.01% 96.95%    3912 301171 java.io.BufferedInputStream.read
+  60  0.01% 96.96%    1138 301765 java.lang.CharacterDataLatin1.toLowerCase
+  61  0.01% 96.97%    4140 303802 java.lang.String.startsWith
+  62  0.01% 96.98%    1944 304702 java.lang.reflect.Method.equals
+  63  0.01% 96.99%    4649 305682 java.lang.Character.isWhitespace
+  64  0.01% 97.01%    3972 305684 java.lang.AbstractStringBuilder.append
+  65  0.01% 97.02%    3972 305685 java.lang.StringBuilder.append
+  66  0.01% 97.03%   11108 313748 java.lang.String.charAt
+  67  0.01% 97.04%    5706 313757 java.lang.CharacterData.of
+CPU TIME (ms) END

@@ -38,7 +38,11 @@ public class CSQ extends AAT {
     private final int mindBm = -113;
     
     public enum Condiconal {
-        marginal, ok, good, excellent;
+        NO_SIGNAL,
+        MARGINAL,
+        OK, 
+        GOOD, 
+        EXCELLENT;
     }
 
     public CSQ() {
@@ -72,16 +76,16 @@ public class CSQ extends AAT {
     public Condiconal getCondition() {
         int raw = getRawValue();
         if(raw < 10) {
-            return Condiconal.marginal;
+            return Condiconal.MARGINAL;
         } 
         if(raw >= 10 && raw < 15) {
-            return Condiconal.ok;
+            return Condiconal.OK;
         }
         if(raw >= 15 && raw < 20) {
-            return Condiconal.good;
+            return Condiconal.GOOD;
         }        
         if(raw >= 20) {
-            return Condiconal.excellent;
+            return Condiconal.EXCELLENT;
         }
         throw new IllegalStateException("Illegal signal value.");
     }

@@ -58,7 +58,7 @@ public class SerialModem extends Thread implements Modem, SerialPortEventListene
      */
     private String portName;
     protected SerialPort serialPort;
-    private final int SPEED;
+    private final int BOUDRATE;
     private final int AT_TIMEOUT; //ms
 
     /*
@@ -79,9 +79,9 @@ public class SerialModem extends Thread implements Modem, SerialPortEventListene
     */
     private Mode mode = Mode.READY;
 
-    public SerialModem(Gateway gateway, int speed, int atTimeout) {
+    public SerialModem(Gateway gateway, int boudrate, int atTimeout) {
         this.gateway = gateway;
-        this.SPEED = speed;
+        this.BOUDRATE = boudrate;
         this.AT_TIMEOUT = atTimeout;
         
         this.setName("SerialNotifyThread");
@@ -105,9 +105,10 @@ public class SerialModem extends Thread implements Modem, SerialPortEventListene
             close();
             serialPort = new SerialPort(portName);
             serialPort.openPort();
-            serialPort.setParams(SPEED, 8, 1, SerialPort.PARITY_NONE);
+            serialPort.setParams(BOUDRATE, 8, 1, SerialPort.PARITY_NONE);
             serialPort.setEventsMask(SerialPort.MASK_RXCHAR);
             serialPort.addEventListener(this);
+            
             log.info("Port opened '{}'", portName);
         } catch (SerialPortException ex) {
             throw new ModemException(ex);
@@ -116,7 +117,7 @@ public class SerialModem extends Thread implements Modem, SerialPortEventListene
 
     @Override
     public void close() throws ModemException {
-        if (serialPort != null) {
+        if (serialPort != null && serialPort.isOpened()) {
             try {
                 serialPort.closePort();
             } catch (SerialPortException ex) {
@@ -236,7 +237,7 @@ public class SerialModem extends Thread implements Modem, SerialPortEventListene
     }
     
     public int getSpeed() {
-        return SPEED;
+        return BOUDRATE;
     }
     
     public int getAtTimeout() {
