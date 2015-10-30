@@ -110,47 +110,6 @@ public class ATGateway implements Gateway {
         this.port = portname;
     }
 
-    /*
-     Set Listeners
-     */
-    @Override
-    public void setOutboundMessageEventListener(OutboundMessageEventListener listener) {
-        this.smsStatusListener = listener;
-    }
-
-    @Override
-    public void setInboundCallListener(InboundCallEventListener callListener) {
-        this.callListener = callListener;
-    }
-
-    @Override
-    public void setInboundMessageListener(InboundMessageEventListener listener) {
-        this.inboundMessageLinstener = listener;
-    }
-
-    public void setGlobalDeliveryReport(boolean b) {
-        //TODO implemt me
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
-    }
-
-    public void setGlobalValidityPeriod(boolean b) {
-        //TODO implemt me
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
-    }
-
-    @Override
-    public String getPortName() {
-        return port;
-    }
-
-    public int getSerialSpeed() {
-        return modem.getSpeed();
-    }
-
-    public int getAtTimeOut() {
-        return modem.getAtTimeout();
-    }
-
     /**
      * Open gateway
      *
@@ -181,23 +140,6 @@ public class ATGateway implements Gateway {
         } catch (ModemException e) {
             throw new GatewayException(e, port);
         }
-    }
-
-    public boolean isServiceAddressSet() throws GatewayException {
-        try {
-            CSCAquestion cscaq = modem.send(new CSCAquestion());
-            if (!cscaq.isStatusOK()) {
-                throw new GatewayException(GatewayException.SERVISE_READ_ERR, port);
-            }
-            return cscaq.getAddress().length() > 0;
-
-        } catch (ModemException ex) {
-            throw new GatewayException(ex, port);
-        }
-    }
-
-    public <T extends AAT> T directSendAtCommand(T cmd) throws ModemException {
-        return modem.send(cmd);
     }
 
     /**
@@ -291,98 +233,12 @@ public class ATGateway implements Gateway {
 
             //test for network            
             isRegisteredIntoNetwork();
-            
-            if(status.equals(Status.NETWORK_OK)) {
+
+            if (status.equals(Status.NETWORK_OK)) {
                 status = Status.READY;
             }
 
             return true;
-        } catch (ModemException ex) {
-            throw new GatewayException(ex, port);
-        }
-    }
-
-    public boolean isAlive() {
-        try {
-            if (modem.send(new AT()).isStatusOK()) {
-                return true;
-            }
-        } catch (ModemException ex) {
-
-        }
-        return false;
-    }
-
-    /**
-     * Send outbound SMS message.
-     *
-     * @param message
-     * @throws GatewayException
-     */
-    @Override
-    public void sendMessage(OutboundMessage message) throws GatewayException {
-        try {
-            if (!status.equals(status.READY)) {
-                throw new GatewayRuntimeException("Modem is READY to send sms", port);
-            }
-
-            if (smsServiceAddress == null) {
-                throw new GatewayRuntimeException("Sms Service Address is empty. Set it first.", port);
-            }
-
-//            if (!isRegisteredIntoNetwork() || !sufficientSignal()) {
-//                message.setStatus(OutboundMessage.Status.NOT_SEND_NO_SIGNAL);
-//                return;
-//            }
-            if (message.isDeliveryReport()) {
-                //TODO impl. me
-            }
-
-            CMGS cmgs = new CMGS(message.getDestination());
-            if (!modem.send(cmgs).isStatusOK()) {
-                //TODO
-            }
-            CMGSText cmgstext = modem.send(new CMGSText(message.getText()));
-            if (!cmgstext.isStatusOK()) {
-                //TODO
-            }
-            message.setIndex(cmgstext.getIndex());
-            message.setStatus(OutboundMessage.Status.SENDED_NOT_ACK);
-            outgoingList.add(message);
-        } catch (ModemException ex) {
-            throw new GatewayException(ex, port);
-        }
-    }
-
-    /**
-     * Set SMS service address.
-     *
-     * @param address
-     * @throws GatewayException
-     */
-    public void setSmsServiceAddress(String address) throws GatewayException {
-        Pattern pattern = Pattern.compile("^\\+?[1-9]\\d{1,14}$");
-        Matcher matcher = pattern.matcher(address);
-
-        try {
-            if (matcher.matches()) {
-                switch (status) {
-                    case OPENED:
-
-                        if (modem.send(new CSCA(address)).isStatusOK()) {
-                            smsServiceAddress = address;
-                        } else {
-                            throw new GatewayRuntimeException("Modem cannot accept sms service address", port);
-                        }
-
-                        break;
-                    case CLOSED:
-                        smsServiceAddress = address;
-                        break;
-                }
-            } else {
-                throw new GatewayRuntimeException("The Message Service Address has invalid format", port);
-            }
         } catch (ModemException ex) {
             throw new GatewayException(ex, port);
         }
@@ -473,6 +329,151 @@ public class ATGateway implements Gateway {
             }
         } catch (ModemException ex) {
             log.warn("Exception while notification process", ex);
+        }
+    }
+    
+    /*
+     Set Listeners
+     */
+    @Override
+    public void setOutboundMessageEventListener(OutboundMessageEventListener listener) {
+        this.smsStatusListener = listener;
+    }
+
+    @Override
+    public void setInboundCallListener(InboundCallEventListener callListener) {
+        this.callListener = callListener;
+    }
+
+    @Override
+    public void setInboundMessageListener(InboundMessageEventListener listener) {
+        this.inboundMessageLinstener = listener;
+    }
+
+    public void setGlobalDeliveryReport(boolean b) {
+        //TODO implemt me
+        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+    }
+
+    public void setGlobalValidityPeriod(boolean b) {
+        //TODO implemt me
+        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+    }
+
+    @Override
+    public String getPortName() {
+        return port;
+    }
+
+    public int getSerialSpeed() {
+        return modem.getSpeed();
+    }
+
+    public int getAtTimeOut() {
+        return modem.getAtTimeout();
+    }
+
+    public boolean isServiceAddressSet() throws GatewayException {
+        try {
+            CSCAquestion cscaq = modem.send(new CSCAquestion());
+            if (!cscaq.isStatusOK()) {
+                throw new GatewayException(GatewayException.SERVISE_READ_ERR, port);
+            }
+            return cscaq.getAddress().length() > 0;
+
+        } catch (ModemException ex) {
+            throw new GatewayException(ex, port);
+        }
+    }
+
+    public <T extends AAT> T directSendAtCommand(T cmd) throws ModemException {
+        return modem.send(cmd);
+    }
+
+    @Override
+    public boolean isAlive() {
+        try {
+            if (modem.send(new AT()).isStatusOK()) {
+                return true;
+            }
+        } catch (ModemException ex) {
+
+        }
+        return false;
+    }
+
+    /**
+     * Send outbound SMS message.
+     *
+     * @param message
+     * @throws GatewayException
+     */
+    @Override
+    public void sendMessage(OutboundMessage message) throws GatewayException {
+        try {
+            if (!status.equals(status.READY)) {
+                throw new GatewayRuntimeException("Modem is READY to send sms", port);
+            }
+
+            if (smsServiceAddress == null) {
+                throw new GatewayRuntimeException("Sms Service Address is empty. Set it first.", port);
+            }
+
+//            if (!isRegisteredIntoNetwork() || !sufficientSignal()) {
+//                message.setStatus(OutboundMessage.Status.NOT_SEND_NO_SIGNAL);
+//                return;
+//            }
+            if (message.isDeliveryReport()) {
+                //TODO impl. me
+            }
+
+            CMGS cmgs = new CMGS(message.getDestination());
+            if (!modem.send(cmgs).isStatusOK()) {
+                //TODO
+            }
+            CMGSText cmgstext = modem.send(new CMGSText(message.getText()));
+            if (!cmgstext.isStatusOK()) {
+                //TODO
+            }
+            message.setIndex(cmgstext.getIndex());
+            message.setStatus(OutboundMessage.Status.SENDED_NOT_ACK);
+            outgoingList.add(message);
+        } catch (ModemException ex) {
+            throw new GatewayException(ex, port);
+        }
+    }
+
+    /**
+     * Set SMS service address.
+     *
+     * @param address
+     * @throws GatewayException
+     */
+    public void setSmsServiceAddress(String address) throws GatewayException {
+        Pattern pattern = Pattern.compile("^\\+?[1-9]\\d{1,14}$");
+        Matcher matcher = pattern.matcher(address);
+
+        try {
+            if (matcher.matches()) {
+                switch (status) {
+                    case OPENED:
+
+                        if (modem.send(new CSCA(address)).isStatusOK()) {
+                            smsServiceAddress = address;
+                        } else {
+                            throw new GatewayRuntimeException("Modem cannot accept sms service address", port);
+                        }
+
+                        break;
+                    case CLOSED:
+                        smsServiceAddress = address;
+                        break;
+                }
+            } else {
+                throw new GatewayRuntimeException("The Message Service Address has invalid format", port);
+            }
+        } catch (ModemException ex) {
+            throw new GatewayException(ex, port);
         }
     }
 
