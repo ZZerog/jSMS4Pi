@@ -21,10 +21,11 @@ package cz.zerog.jsms4pi;
  * <http://www.gnu.org/licenses/lgpl-3.0.html>.
  * #L%
  */
-import cz.zerog.jsms4pi.event.InboundCallEventListener;
-import cz.zerog.jsms4pi.event.InboundMessageEventListener;
-import cz.zerog.jsms4pi.event.OutboundMessageEventListener;
+
 import cz.zerog.jsms4pi.exception.GatewayException;
+import cz.zerog.jsms4pi.listener.InboundCallGatewayListener;
+import cz.zerog.jsms4pi.listener.InboundMessageGatewayListener;
+import cz.zerog.jsms4pi.listener.OutboundMessageGatewayListener;
 import cz.zerog.jsms4pi.message.OutboundMessage;
 import cz.zerog.jsms4pi.notification.Notification;
 
@@ -48,11 +49,11 @@ public interface Gateway {
 
     void notify(Notification notifi);
 
-    public void setOutboundMessageEventListener(OutboundMessageEventListener listener);
+    public void setOutboundMessageListener(OutboundMessageGatewayListener listener);
 
-    public void setInboundCallListener(InboundCallEventListener callListener);
+    public void setInboundCallListener(InboundCallGatewayListener callListener);
 
-    public void setInboundMessageListener(InboundMessageEventListener listener);
+    public void setInboundMessageListener(InboundMessageGatewayListener listener);
     
     public boolean isReadyToSend();
     

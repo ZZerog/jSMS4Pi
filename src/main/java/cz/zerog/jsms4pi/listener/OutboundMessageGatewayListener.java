@@ -1,4 +1,6 @@
-package cz.zerog.jsms4pi.exception;
+package cz.zerog.jsms4pi.listener;
+
+import cz.zerog.jsms4pi.event.OutboundMessageEvent;
 
 /*
  * #%L
@@ -26,14 +28,6 @@ package cz.zerog.jsms4pi.exception;
  *
  * @author zerog
  */
-public class ModemException extends Exception {
-    
-    public ModemException(String message) {
-        super(message);
-    }
-
-    public ModemException(Throwable cause) {
-        super(cause);
-    }
-    
+public interface OutboundMessageGatewayListener {
+    public void outboundMessageEvent(OutboundMessageEvent event);
 }

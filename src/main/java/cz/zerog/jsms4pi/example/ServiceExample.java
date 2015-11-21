@@ -1,9 +1,6 @@
-/*
- * To change this license header, choose License Headers in Project Properties.
- * To change this template file, choose Tools | Templates
- * and open the template in the editor.
- */
 package cz.zerog.jsms4pi.example;
+
+import java.io.IOException;
 
 /*
  * #%L
@@ -27,23 +24,29 @@ package cz.zerog.jsms4pi.example;
  * #L%
  */
 
-import cz.zerog.jsms4pi.ATGateway;
-import cz.zerog.jsms4pi.Gateway;
 import cz.zerog.jsms4pi.Service;
-import java.io.IOException;
+import cz.zerog.jsms4pi.event.CallEvent;
+import cz.zerog.jsms4pi.listener.InboundCallListener;
 
 /**
  *
  * @author zerog
  */
-public class ServiceExample {
-    public static void main(String[] args) throws IOException {
-        Service s = Service.getInstance();
-        
-        Gateway gt = new ATGateway("/dev/ttyUSB4");
-        
-        s.addGateway(gt, "o2");
-        
-        System.in.read();
-    }
+public class ServiceExample implements InboundCallListener {
+	public static void main(String[] args) throws IOException {
+		new ServiceExample().start();
+	}
+
+	public void start() throws IOException {
+		Service service = Service.getInstance();
+		service.addDefaultGateway("/dev/ttyUSB4", "o2");
+		service.addInboundCallListener(this);
+		System.out.println("Running");
+		System.in.read();
+	}
+
+	@Override
+	public void inboundCallEvent(String gatewayName, CallEvent callEvent) {
+		System.out.println("Detected call " + callEvent.getCallerId() + " by number. Gateway: " + gatewayName);
+	}
 }

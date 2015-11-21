@@ -21,16 +21,18 @@ package cz.zerog.jsms4pi;
  * <http://www.gnu.org/licenses/lgpl-3.0.html>.
  * #L%
  */
-import cz.zerog.jsms4pi.event.InboundCallEventListener;
+
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+
 import cz.zerog.jsms4pi.event.InboundMessageEvent;
-import cz.zerog.jsms4pi.event.InboundMessageEventListener;
-import cz.zerog.jsms4pi.event.OutboundMessageEventListener;
 import cz.zerog.jsms4pi.exception.GatewayException;
+import cz.zerog.jsms4pi.listener.InboundCallGatewayListener;
+import cz.zerog.jsms4pi.listener.InboundMessageGatewayListener;
+import cz.zerog.jsms4pi.listener.OutboundMessageGatewayListener;
 import cz.zerog.jsms4pi.message.InboundMessage;
 import cz.zerog.jsms4pi.message.OutboundMessage;
 import cz.zerog.jsms4pi.notification.Notification;
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
 
 /**
  *
@@ -40,7 +42,7 @@ public class NullGateway extends Thread implements Gateway {
 
     private final Logger log = LogManager.getLogger();
 
-    InboundMessageEventListener listener;
+    InboundMessageGatewayListener listener;
     String source;
     int timeout;
 
@@ -81,18 +83,15 @@ public class NullGateway extends Thread implements Gateway {
         log.info("notify");
     }
 
+ 
+
     @Override
-    public void setOutboundMessageEventListener(OutboundMessageEventListener listener) {
+    public void setInboundCallListener(InboundCallGatewayListener callListener) {
         throw new UnsupportedOperationException("Not supported.");
     }
 
     @Override
-    public void setInboundCallListener(InboundCallEventListener callListener) {
-        throw new UnsupportedOperationException("Not supported.");
-    }
-
-    @Override
-    public void setInboundMessageListener(InboundMessageEventListener listener) {
+    public void setInboundMessageListener(InboundMessageGatewayListener listener) {
         System.out.println("setIn");
         this.listener = listener;
     }
@@ -117,5 +116,11 @@ public class NullGateway extends Thread implements Gateway {
     public void sendMessage(OutboundMessage message) throws GatewayException {
         throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
     }
+
+	@Override
+	public void setOutboundMessageListener(OutboundMessageGatewayListener listener) {
+		// TODO Auto-generated method stub
+		
+	}
 
 }

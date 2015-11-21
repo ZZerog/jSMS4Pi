@@ -1,5 +1,9 @@
 package cz.zerog.jsms4pi.example;
 
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStreamReader;
+
 /*
  * #%L
  * jSMS4Pi
@@ -23,19 +27,16 @@ package cz.zerog.jsms4pi.example;
  */
 import cz.zerog.jsms4pi.ATGateway;
 import cz.zerog.jsms4pi.event.CallEvent;
-import cz.zerog.jsms4pi.event.InboundCallEventListener;
 import cz.zerog.jsms4pi.event.InboundMessageEvent;
-import cz.zerog.jsms4pi.event.InboundMessageEventListener;
 import cz.zerog.jsms4pi.exception.GatewayException;
-import java.io.BufferedReader;
-import java.io.IOException;
-import java.io.InputStreamReader;
+import cz.zerog.jsms4pi.listener.InboundCallGatewayListener;
+import cz.zerog.jsms4pi.listener.InboundMessageGatewayListener;
 
 /**
  *
  * @author zerog
  */
-public class ReceiveSMSExample implements  InboundCallEventListener, InboundMessageEventListener {
+public class ReceiveSMSExample implements  InboundCallGatewayListener, InboundMessageGatewayListener {
 
     public static void main(String[] args) throws GatewayException, IOException {
         BufferedReader reader = new BufferedReader(new InputStreamReader(System.in));

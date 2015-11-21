@@ -22,16 +22,24 @@ package cz.zerog.jsms4pi;
  * #L%
  */
 
-import cz.zerog.jsms4pi.event.InboundMessageEvent;
-import cz.zerog.jsms4pi.event.InboundMessageEventListener;
-import cz.zerog.jsms4pi.event.InboundMessageGatewayEventListener;
-import cz.zerog.jsms4pi.message.OutboundMessage;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+
+import cz.zerog.jsms4pi.event.CallEvent;
+import cz.zerog.jsms4pi.event.InboundMessageEvent;
+import cz.zerog.jsms4pi.event.OutboundMessageEvent;
+import cz.zerog.jsms4pi.listener.InboundCallGatewayListener;
+import cz.zerog.jsms4pi.listener.InboundCallListener;
+import cz.zerog.jsms4pi.listener.InboundMessageGatewayListener;
+import cz.zerog.jsms4pi.listener.InboundMessageListener;
+import cz.zerog.jsms4pi.listener.OutboundMessageGatewayListener;
+import cz.zerog.jsms4pi.listener.OutboundMessageListener;
+import cz.zerog.jsms4pi.message.OutboundMessage;
 
 /**
  *
@@ -39,119 +47,163 @@ import org.apache.logging.log4j.Logger;
  */
 public final class Service implements Runnable {
 
-    private static final Service single = new Service();
-    private final Logger log = LogManager.getLogger();
-    private final Thread serviceThread;
+	private static final Service single = new Service();
+	private final Logger log = LogManager.getLogger();
+	private final Thread serviceThread;
 
-    private Service() {
-        serviceThread = new Thread(this);
-        serviceThread.setName("Servise Thread");
-        serviceThread.start();
-    }
+	private final Map<String, Gateway> gateways = new HashMap<String, Gateway>();
+	private final List<OutboundMessage> waitingMessage = new ArrayList<OutboundMessage>();
 
-    private final Map<String, Gateway> gateways = new HashMap();
+	private List<InboundMessageListener> inboundMessListeners = new ArrayList<>();
+	private List<OutboundMessageListener> outboundMessListeners = new ArrayList<>();
+	private List<InboundCallListener> inboundCallListeners = new ArrayList<>();
 
-    public static Service getInstance() {
-        return single;
-    }
+	private int TIMER = 10 * 1000;
 
-    private InboundMessageGatewayEventListener inMessGatewayEventListener;
-    private final List<OutboundMessage> outMess = new ArrayList();
+	private Service() {
+		serviceThread = new Thread(this);
+		serviceThread.setName("Servise Thread");
+		serviceThread.setDaemon(true);
+		serviceThread.start();
+	}
 
-    private int TIMER = 10 * 1000;
+	public static Service getInstance() {
+		return single;
+	}
 
-    public void addGateway(Gateway gateway, String name) {
-        gateways.put(name, gateway);
-        log.info("added gateway '{}' into service", name);
-        gateway.setInboundMessageListener(new InboundMessageGatewayEventListenerImpl(name));
-        serviceThread.interrupt();
-    }
+	public void addDefaultGateway(String portPath, String name) {
+		this.addGateway(new ATGateway(portPath), name);
+	}
 
-    public void getGateway(String name) {
-        gateways.get(name);
-    }
+	public void addGateway(Gateway gateway, String name) {
+		gateways.put(name, gateway);
+		log.info("added gateway '{}' into service", name);
+		gateway.setInboundMessageListener(new InboundMessageEventListenerImpl(name));
+		gateway.setOutboundMessageListener(new OutboundMessageEventListenerImpl(name));
+		gateway.setInboundCallListener(new InboundCallEventListenerImpl(name));
 
-    public void sendMessage(OutboundMessage message) {
-        outMess.add(message);
-    }
+		serviceThread.interrupt();
+	}
 
-    public void sendMessage(String gatewayName, OutboundMessage message) {
+	public void getGateway(String name) {
+		gateways.get(name);
+	}
 
-    }
+	public void sendMessage(OutboundMessage message) {
+		waitingMessage.add(message);
+		serviceThread.interrupt();
+	}
 
-    public void setInboundMessageGatewayEventListener(InboundMessageGatewayEventListener listener) {
-        this.inMessGatewayEventListener = listener;
-    }
+	public void addInboundMessageListener(InboundMessageListener listener) {
+		this.inboundMessListeners.add(listener);
+	}
 
-    private boolean restart(Gateway g) {
-        log.info("RESTART");
-        try {
-            g.close();
-            g.open();
-            g.init();
-            return true;
-        } catch (Exception ex) {
-            ex.printStackTrace();
-            return false;
-        }
-    }
+	public void addOutboundMessageListener(OutboundMessageListener listener) {
+		this.outboundMessListeners.add(listener);
+	}
 
-    @Override
-    public void run() {
-        while (true) {
-            try {
-                
-                log.info("s start");
+	public void addInboundCallListener(InboundCallListener listener) {
+		this.inboundCallListeners.add(listener);
+	}
 
-                if (outMess.size() > 0) {
-                    for (OutboundMessage message : outMess) {
-                        for (Gateway g : gateways.values()) {
-                            if (g.isReadyToSend()) {
-                                g.sendMessage(message);
-                                //TODO delete message!
-                            }
-                        }
-                    }
-                }
+	private boolean restart(Gateway g) {
+		log.info("RESTART");
+		try {
+			g.close();
+			g.open();
+			g.init();
+			return true;
+		} catch (Exception ex) {
+			ex.printStackTrace();
+			return false;
+		}
+	}
 
-                for (Gateway g : gateways.values()) {
-                    if (!g.isReadyToSend()) {
-                        log.info("G is not ready");
-                        restart(g);
-                    } else {
-                        if (!g.isAlive()) {
-                            log.info("NO Alive");
-                            restart(g);
-                        }
-                    }
-                }
+	@Override
+	public void run() {
+		while (true) {
+			try {
+				if (waitingMessage.size() > 0) {
+					for (OutboundMessage message : waitingMessage) {
+						for (Gateway g : gateways.values()) {
+							if (g.isReadyToSend()) {
+								g.sendMessage(message);
+								waitingMessage.remove(message);
+							}
+						}
+					}
+				}
 
-                try {
-                    Thread.sleep(TIMER);
-                } catch (InterruptedException ex) {
-                    //ready
-                }
+				for (Gateway g : gateways.values()) {
+					if (!g.isReadyToSend()) {
+						restart(g);
+					} else {
+						if (!g.isAlive()) {
+							restart(g);
+						}
+					}
+				}
 
-            } catch (Exception e) {
-                e.printStackTrace();
-            }
-        }
-    }
+				try {
+					Thread.sleep(TIMER);
+				} catch (InterruptedException ex) {
+					// ready
+				}
 
-    private class InboundMessageGatewayEventListenerImpl implements InboundMessageEventListener {
+			} catch (Exception e) {
+				e.printStackTrace();
+			}
+		}
+	}
 
-        final private String name;
+	private class InboundCallEventListenerImpl implements InboundCallGatewayListener {
 
-        public InboundMessageGatewayEventListenerImpl(String gatewayName) {
-            this.name = gatewayName;
-        }
+		final private String gatewayName;
 
-        @Override
-        public void inboundMessageEvent(InboundMessageEvent inboundMessageEvent) {
-            System.out.println("buf");
-            if (inMessGatewayEventListener != null) {
-                inMessGatewayEventListener.inboundMessageEvent(name, inboundMessageEvent);
-            }
-        }
-    }
+		public InboundCallEventListenerImpl(String gatewayName) {
+			this.gatewayName = gatewayName;
+		}
+
+		@Override
+		public void inboundCallEvent(CallEvent callEvent) {
+			for (InboundCallListener listener : inboundCallListeners) {
+				listener.inboundCallEvent(gatewayName, callEvent);
+			}
+		}
+
+	}
+
+	private class OutboundMessageEventListenerImpl implements OutboundMessageGatewayListener {
+
+		final private String gatewayName;
+
+		public OutboundMessageEventListenerImpl(String gatewayName) {
+			this.gatewayName = gatewayName;
+		}
+
+		@Override
+		public void outboundMessageEvent(OutboundMessageEvent event) {
+			for (OutboundMessageListener listener : outboundMessListeners) {
+				listener.outboundMessageEvent(gatewayName, event);
+			}
+
+		}
+
+	}
+
+	private class InboundMessageEventListenerImpl implements InboundMessageGatewayListener {
+
+		final private String gatewayName;
+
+		public InboundMessageEventListenerImpl(String gatewayName) {
+			this.gatewayName = gatewayName;
+		}
+
+		@Override
+		public void inboundMessageEvent(InboundMessageEvent inboundMessageEvent) {
+			for (InboundMessageListener listener : inboundMessListeners) {
+				listener.inboundMessageEvent(gatewayName, inboundMessageEvent);
+			}
+		}
+	}
 }

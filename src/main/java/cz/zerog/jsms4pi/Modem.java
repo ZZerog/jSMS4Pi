@@ -23,7 +23,6 @@ package cz.zerog.jsms4pi;
  */
 
 import cz.zerog.jsms4pi.at.AAT;
-import cz.zerog.jsms4pi.exception.ModemException;
 
 
 /**
@@ -32,9 +31,9 @@ import cz.zerog.jsms4pi.exception.ModemException;
  */
 public interface Modem  {
 
-    public void open(String portName) throws Exception ;
+    public void open(String portName) throws Exception;
 
-    public void close() throws Exception ;        
+    public void close() throws Exception;        
     
-    public <T extends AAT> T send(T at) throws ModemException;
+    public <T extends AAT> T send(T at) throws Exception;
 }

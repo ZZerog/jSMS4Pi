@@ -1,4 +1,6 @@
-package cz.zerog.jsms4pi.exception;
+package cz.zerog.jsms4pi.listener;
+
+import cz.zerog.jsms4pi.event.CallEvent;
 
 /*
  * #%L
@@ -26,22 +28,8 @@ package cz.zerog.jsms4pi.exception;
  *
  * @author zerog
  */
-public class GatewayRuntimeException extends RuntimeException {
-    
-    private final String port;
-    
-    public GatewayRuntimeException(String message, String port) {
-        super(message+" Port: "+port);
-        this.port = port;
-    }
+public interface InboundCallListener {
 
-    public GatewayRuntimeException(String message, Throwable t, String port) {
-        super(message, t);
-        this.port = port;
-    }    
-    
-    public String getPort() {
-        return port;
-    }
+    public void inboundCallEvent(String gatewayName, CallEvent callEvent);
     
 }

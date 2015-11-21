@@ -1,5 +1,9 @@
 package cz.zerog.jsms4pi.example;
 
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStreamReader;
+
 /*
  * #%L
  * jSMS4Pi
@@ -24,10 +28,6 @@ package cz.zerog.jsms4pi.example;
 
 import cz.zerog.jsms4pi.ATGateway;
 import cz.zerog.jsms4pi.exception.GatewayException;
-import cz.zerog.jsms4pi.exception.ModemException;
-import java.io.BufferedReader;
-import java.io.IOException;
-import java.io.InputStreamReader;
 
 /**
  *
@@ -35,67 +35,65 @@ import java.io.InputStreamReader;
  */
 public class ModenInfoExample {
 
-    private static void printHelp() {
-        System.out.println("Show info");
-    }
-    
-    private ModenInfoExample(String port) throws ModemException, GatewayException {
+	private static void printHelp() {
+		System.out.println("Show info");
+	}
 
-        ATGateway gateway = new ATGateway(port);
-        gateway.open();
-        gateway.printModemInfo();
-        gateway.close();
-        
-    }
-    
-    public static void main(String[] args) throws IOException, ModemException, GatewayException {
-        BufferedReader reader = new BufferedReader(new InputStreamReader(System.in));
+	private ModenInfoExample(String port) throws GatewayException {
 
-        String port = null;
-        
-        if(args.length > 0) {
-            for (int i = 0; i < args.length; i++) {
-                String identifier = args[i];
-                
-                switch(identifier) {
-                    case "-p" :
-                        if(i+1 < args.length) {
-                            i++;
-                            port = args[i];
-                        } else {
-                            System.out.println("Wrong count of argument.");
-                            printHelp();
-                            System.exit(0);
-                        }
-                        break;
-                    case "-h" :
-                    case "-help" :
-                        printHelp();
-                        System.exit(0);
-                        break;
-                    default:
-                        System.out.println("Unknow parametr "+args[i]);
-                        printHelp();
-                        System.exit(0);
-                }                
-            }
-        }
-        
-        
-        
-        if(port==null) {
-            port = Tool.selectionPort(reader);
-        }
-        
-        if(port == null) {
-            System.exit(0);
-        }
+		ATGateway gateway = new ATGateway(port);
+		gateway.open();
+		gateway.printModemInfo();
+		gateway.close();
 
-        System.out.println("Summary: ");
-        System.out.println("Serial port: " + port);
+	}
 
-        Tool.enter(reader);        
-        
-        new ModenInfoExample(port);
-    }
+	public static void main(String[] args) throws IOException, GatewayException {
+		BufferedReader reader = new BufferedReader(new InputStreamReader(System.in));
+
+		String port = null;
+
+		if (args.length > 0) {
+			for (int i = 0; i < args.length; i++) {
+				String identifier = args[i];
+
+				switch (identifier) {
+				case "-p":
+					if (i + 1 < args.length) {
+						i++;
+						port = args[i];
+					} else {
+						System.out.println("Wrong count of argument.");
+						printHelp();
+						System.exit(0);
+					}
+					break;
+				case "-h":
+				case "-help":
+					printHelp();
+					System.exit(0);
+					break;
+				default:
+					System.out.println("Unknow parametr " + args[i]);
+					printHelp();
+					System.exit(0);
+				}
+			}
+		}
+
+		if (port == null) {
+			port = Tool.selectionPort(reader);
+		}
+
+		if (port == null) {
+			System.exit(0);
+		}
+
+		System.out.println("Summary: ");
+		System.out.println("Serial port: " + port);
+
+		Tool.enter(reader);
+
+		new ModenInfoExample(port);
+	}
 }

@@ -24,7 +24,6 @@ package cz.zerog.jsms4pi.example;
 import cz.zerog.jsms4pi.ATGateway;
 import cz.zerog.jsms4pi.at.CLAC;
 import cz.zerog.jsms4pi.exception.GatewayException;
-import cz.zerog.jsms4pi.exception.ModemException;
 
 /**
  *
@@ -32,15 +31,15 @@ import cz.zerog.jsms4pi.exception.ModemException;
  */
 public class CommandList {
 
-    public static void main(String[] args) throws ModemException, GatewayException, InterruptedException {
-        ATGateway gateway = new ATGateway("/dev/ttyUSB5");
-        gateway.open();
-        
-        for(String cmd : gateway.directSendAtCommand(new CLAC()).getSupportedCommandList()) {
-            System.out.println(cmd);
-        }
-        
-        gateway.close();
-    }
+	public static void main(String[] args) throws GatewayException, InterruptedException {
+		ATGateway gateway = new ATGateway("/dev/ttyUSB5");
+		gateway.open();
+
+		for (String cmd : gateway.directSendAtCommand(new CLAC()).getSupportedCommandList()) {
+			System.out.println(cmd);
+		}
+
+		gateway.close();
+	}
 
 }

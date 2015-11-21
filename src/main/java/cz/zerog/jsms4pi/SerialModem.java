@@ -22,9 +22,16 @@ package cz.zerog.jsms4pi;
  * #L%
  */
 
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Queue;
+import java.util.concurrent.LinkedBlockingQueue;
+
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 import cz.zerog.jsms4pi.at.AAT;
-import cz.zerog.jsms4pi.exception.ModemException;
+import cz.zerog.jsms4pi.exception.GatewayException;
 import cz.zerog.jsms4pi.notification.CDS;
 import cz.zerog.jsms4pi.notification.CDSI;
 import cz.zerog.jsms4pi.notification.CLIPN;
@@ -33,16 +40,10 @@ import cz.zerog.jsms4pi.notification.CMTI;
 import cz.zerog.jsms4pi.notification.Notification;
 import cz.zerog.jsms4pi.notification.RING;
 import cz.zerog.jsms4pi.notification.UnknownNotifications;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Queue;
-import java.util.concurrent.LinkedBlockingQueue;
 import jssc.SerialPort;
 import jssc.SerialPortEvent;
 import jssc.SerialPortEventListener;
 import jssc.SerialPortException;
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
 
 /**
  *
@@ -50,237 +51,244 @@ import org.apache.logging.log4j.Logger;
  */
 public class SerialModem extends Thread implements Modem, SerialPortEventListener {
 
-    // Logger
-    private final Logger log = LogManager.getLogger();
+	// Logger
+	private final Logger log = LogManager.getLogger();
 
-    /*
-     RS-232 setting
-     */
-    private String portName;
-    protected SerialPort serialPort;
-    private final int BOUDRATE;
-    private final int AT_TIMEOUT; //ms
+	/*
+	 * RS-232 setting
+	 */
+	private String portName;
+	protected SerialPort serialPort;
+	private final int DATA_BIT;
+	private final int STOP_BIT;
+	private final int PARITY;
+	private final int BOUDRATE;
+	private final int AT_TIMEOUT; // ms
 
-    /*
-     Gateway 
-     */
-    private Gateway gateway;
+	/*
+	 * Gateway
+	 */
+	private Gateway gateway;
 
-    /*
-     Object which waiting for part of response
-     Notification or AT
-     */
-    private ATResponse atResponse = null;
+	/*
+	 * Object which waiting for part of response Notification or AT
+	 */
+	private ATResponse atResponse = null;
 
-    private final Queue<Notification> notificationQueue = new LinkedBlockingQueue<>();
+	private final Queue<Notification> notificationQueue = new LinkedBlockingQueue<>();
 
-    /*
-    Status of modem
-    */
-    private Mode mode = Mode.READY;
+	/*
+	 * Status of modem
+	 */
+	private Mode mode = Mode.READY;
 
-    public SerialModem(Gateway gateway, int boudrate, int atTimeout) {
-        this.gateway = gateway;
-        this.BOUDRATE = boudrate;
-        this.AT_TIMEOUT = atTimeout;
-        
-        this.setName("SerialNotifyThread");
-        this.setDaemon(true);
-        this.start();        
-    }
-    
-    
-    public SerialModem(Gateway gateway, int speed) {
-        this(gateway, speed, 5 * 1000);
-    }
-    
-    public SerialModem(Gateway gateway) {
-        this(gateway, SerialPort.BAUDRATE_57600);
-    }
+	public SerialModem(Gateway gateway, int boudrate, int databit, int stopbit, int parity, int atTimeout) {
+		this.gateway = gateway;
+		this.BOUDRATE = boudrate;
+		this.AT_TIMEOUT = atTimeout;
+		this.DATA_BIT = databit;
+		this.STOP_BIT = stopbit;
+		this.PARITY = parity;
+		this.setName("SerialNotifyThread");
+		this.setDaemon(true);
+		this.start();
+	}
 
-    @Override
-    public void open(String portName) throws ModemException {
-        this.portName = portName;
-        try {
-            close();
-            serialPort = new SerialPort(portName);
-            serialPort.openPort();
-            serialPort.setParams(BOUDRATE, 8, 1, SerialPort.PARITY_NONE);
-            serialPort.setEventsMask(SerialPort.MASK_RXCHAR);
-            serialPort.addEventListener(this);
-            
-            log.info("Port opened '{}'", portName);
-        } catch (SerialPortException ex) {
-            throw new ModemException(ex);
-        }
-    }
+	public SerialModem(Gateway gateway, int boudrate) {
+		this(gateway, boudrate, 8, 1, SerialPort.PARITY_NONE, 5 * 1000);
+	}
 
-    @Override
-    public void close() throws ModemException {
-        if (serialPort != null && serialPort.isOpened()) {
-            try {
-                serialPort.closePort();
-            } catch (SerialPortException ex) {
-                throw new ModemException(ex);
-            }
-        }
-    }
+	public SerialModem(Gateway gateway, int boudrate, int atResponseTO) {
+		this(gateway, boudrate, 8, 1, SerialPort.PARITY_NONE, atResponseTO);
+	}
 
-    @Override
-    public <T extends AAT> T send(T cmd) throws ModemException {
-        //seve and set mode
-        atResponse = (ATResponse) cmd;
-        mode = Mode.AT;
+	public SerialModem(Gateway gateway) {
+		this(gateway, SerialPort.BAUDRATE_57600);
+	}
 
-        cmd.setWaitingStatus();
-        String request = cmd.getPrefix() + cmd.getRequest();
-        log.info("Request: {}", crrt(request));
-        try {
-            serialPort.writeString(request);
-            synchronized (cmd) {
-                cmd.wait(AT_TIMEOUT);
-            }
-            if(cmd.getException()!=null) {
-                throw cmd.getException(); 
-            }
-            if(cmd.isStatus(AAT.Status.WAITING))  {
-                throw new ModemException("Response time expired");
-            }
-        } catch (InterruptedException ex) {
-            log.warn("Interuppted, while wait for answer");
-        } catch (SerialPortException ex) {
-            throw new ModemException(ex);
-        }
-        atResponse = null;
-        mode = Mode.READY;
-        return cmd;
-    }
+	@Override
+	public void open(String portName) throws GatewayException {
+		this.portName = portName;
+		try {
+			close();
+			serialPort = new SerialPort(portName);
+			serialPort.openPort();
+			serialPort.setParams(BOUDRATE, DATA_BIT, STOP_BIT, PARITY);
+			serialPort.setEventsMask(SerialPort.MASK_RXCHAR);
+			serialPort.addEventListener(this);
 
-    @Override
-    public void run() {
-        while (true) {
-            gateway.notify(notificationQueue.poll());
-        }
-    }
+			log.info("Port opened '{}'", portName);
+		} catch (SerialPortException ex) {
+			throw new GatewayException(ex);
+		}
+	}
 
-    @Override
-    public void serialEvent(SerialPortEvent event) {
-        // if received some bytes
-        if (event.getEventValue() > 0) {
-            try {
-                
-                
-                //read it
-                String response = serialPort.readString();
+	@Override
+	public void close() throws GatewayException {
+		if (serialPort != null && serialPort.isOpened()) {
+			try {
+				serialPort.closePort();
+			} catch (SerialPortException ex) {
+				throw new GatewayException(ex);
+			}
+		}
+	}
 
-                switch (mode) {
-                    case AT:
-                        if (atResponse == null) {
-                            //TODO
-                            log.warn("In mode AT is atResponse = null");
-                            break;                            
-                        }
-                        synchronized (atResponse) {
-                            if (((AAT)atResponse).appendResponse(response)) {
-                                log.info("Response: [{}]", crrt(atResponse.getResponse()));
-                                atResponse.notify();
-                            }
-                        }
+	@Override
+	public <T extends AAT> T send(T cmd) throws GatewayException {
+		// seve and set mode
+		atResponse = cmd;
+		mode = Mode.AT;
 
-                        break;
-                    case READY:
+		cmd.setWaitingStatus();
+		String request = cmd.getPrefix() + cmd.getRequest();
+		log.info("Request: {}", crrt(request));
+		try {
+			serialPort.writeString(request);
+			synchronized (cmd) {
+				cmd.wait(AT_TIMEOUT);
+			}
+			if (cmd.getException() != null) {
+				throw cmd.getException();
+			}
+			if (cmd.isStatus(AAT.Status.WAITING)) {
+				throw new GatewayException(GatewayException.RESPONSE_EXPIRED, portName);
+			}
+		} catch (InterruptedException ex) {
+			log.warn("Interuppted, while wait for answer");
+		} catch (SerialPortException ex) {
+			throw new GatewayException(ex);
+		}
+		atResponse = null;
+		mode = Mode.READY;
+		return cmd;
+	}
 
-                        atResponse = new UnknownNotifications();
+	@Override
+	public void run() {
+		while (true) {
+			gateway.notify(notificationQueue.poll());
+		}
+	}
 
-                    case NOTIFY:
-                        
-                        mode = Mode.NOTIFY;
+	@Override
+	public void serialEvent(SerialPortEvent event) {
+		// if received some bytes
+		if (event.getEventValue() > 0) {
+			try {
 
-                        /*
-                         If "response" is complete
-                         */
-                        atResponse.appendResponse(response);
-                            
-                        List<Notification> internalQueue = new ArrayList();
-                        while(((UnknownNotifications)atResponse).hasNextMessage()) {
-                            
-                            String notificationMessage = ((UnknownNotifications)atResponse).getNextMessage();
-                  
-                            Notification notification = findNotification(notificationMessage, (UnknownNotifications) atResponse);
-                            
-                            if(notification==null) {
-                                log.info("Detected unknow notification: [{}]",crrt(notificationMessage));
-                                continue;
-                            } 
-                            
-                            log.info("Detected notification: [{}]", crrt(notification.getResponse()));
-                            internalQueue.add(notification);                            
-                        }
-                        
-                        if(((UnknownNotifications)atResponse).isEmpty()) {
-                            mode = Mode.READY;
-                            notificationQueue.addAll(internalQueue);
-                            internalQueue.clear();
-                        }
+				// read it
+				String response = serialPort.readString();
 
-                        break;
-                }
-                
-            } catch (Exception ex) {
-                log.error(ex,ex);
-            }
-        }
-    }
-    
-    public String getPort() {
-        return portName;
-    }
-    
-    public int getSpeed() {
-        return BOUDRATE;
-    }
-    
-    public int getAtTimeout() {
-        return AT_TIMEOUT;
-    }
-    
-    private Notification findNotification(String notificationMessage, UnknownNotifications notifications) {
-        Notification notification;
-        
-        if((notification = RING.tryParse(notificationMessage))!=null) {
-            return notification;
-        }
-        
-        if((notification = CLIPN.tryParse(notificationMessage))!=null) {
-            return notification;
-        }        
-        
-        if((notification = CDSI.tryParse(notificationMessage))!=null) {
-            return notification;
-        }                
-        
-        if((notification = CMTI.tryParse(notificationMessage))!=null) {
-            return notification;
-        }        
-        
-        if((notification = CMT.tryParse(notificationMessage,notifications))!=null) {
-            return notification;
-        }                
-        
-        if((notification = CDS.tryParse(notificationMessage,notifications))!=null) {
-            return notification;
-        }                                   
-        return null;
-    }
+				switch (mode) {
+				case AT:
+					if (atResponse == null) {
+						// TODO
+						log.warn("In mode AT is atResponse = null");
+						break;
+					}
+					synchronized (atResponse) {
+						if (((AAT) atResponse).appendResponse(response)) {
+							log.info("Response: [{}]", crrt(atResponse.getResponse()));
+							atResponse.notify();
+						}
+					}
 
-    private String crrt(String input) {
-        return input.replaceAll("\r", "<R>").replaceAll("\n", "<N>");
-    }
-    
-    
+					break;
+				case READY:
 
-    private enum Mode {
+					atResponse = new UnknownNotifications();
 
-        READY, AT, NOTIFY;
-    }
+				case NOTIFY:
+
+					mode = Mode.NOTIFY;
+
+					/*
+					 * If "response" is complete
+					 */
+					atResponse.appendResponse(response);
+
+					List<Notification> internalQueue = new ArrayList<>();
+					while (((UnknownNotifications) atResponse).hasNextMessage()) {
+
+						String notificationMessage = ((UnknownNotifications) atResponse).getNextMessage();
+
+						Notification notification = findNotification(notificationMessage,
+								(UnknownNotifications) atResponse);
+
+						if (notification == null) {
+							log.info("Detected unknow notification: [{}]", crrt(notificationMessage));
+							continue;
+						}
+
+						log.info("Detected notification: [{}]", crrt(notification.getResponse()));
+						internalQueue.add(notification);
+					}
+
+					if (((UnknownNotifications) atResponse).isEmpty()) {
+						mode = Mode.READY;
+						notificationQueue.addAll(internalQueue);
+						internalQueue.clear();
+					}
+
+					break;
+				}
+
+			} catch (Exception ex) {
+				log.error(ex, ex);
+			}
+		}
+	}
+
+	public String getPort() {
+		return portName;
+	}
+
+	public int getSpeed() {
+		return BOUDRATE;
+	}
+
+	public int getAtTimeout() {
+		return AT_TIMEOUT;
+	}
+
+	private Notification findNotification(String notificationMessage, UnknownNotifications notifications) {
+		Notification notification;
+
+		if ((notification = RING.tryParse(notificationMessage)) != null) {
+			return notification;
+		}
+
+		if ((notification = CLIPN.tryParse(notificationMessage)) != null) {
+			return notification;
+		}
+
+		if ((notification = CDSI.tryParse(notificationMessage)) != null) {
+			return notification;
+		}
+
+		if ((notification = CMTI.tryParse(notificationMessage)) != null) {
+			return notification;
+		}
+
+		if ((notification = CMT.tryParse(notificationMessage, notifications)) != null) {
+			return notification;
+		}
+
+		if ((notification = CDS.tryParse(notificationMessage, notifications)) != null) {
+			return notification;
+		}
+		return null;
+	}
+
+	private String crrt(String input) {
+		return input.replaceAll("\r", "<R>").replaceAll("\n", "<N>");
+	}
+
+	private enum Mode {
+
+		READY,
+		AT,
+		NOTIFY;
+	}
 }

@@ -21,22 +21,24 @@ package cz.zerog.jsms4pi.example;
  * <http://www.gnu.org/licenses/lgpl-3.0.html>.
  * #L%
  */
-import cz.zerog.jsms4pi.ATGateway;
-import cz.zerog.jsms4pi.message.OutboundMessage;
-import cz.zerog.jsms4pi.event.CallEvent;
-import cz.zerog.jsms4pi.event.InboundCallEventListener;
-import cz.zerog.jsms4pi.event.OutboundMessageEvent;
-import cz.zerog.jsms4pi.event.OutboundMessageEventListener;
-import cz.zerog.jsms4pi.exception.GatewayException;
+
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
+
+import cz.zerog.jsms4pi.ATGateway;
+import cz.zerog.jsms4pi.event.CallEvent;
+import cz.zerog.jsms4pi.event.OutboundMessageEvent;
+import cz.zerog.jsms4pi.exception.GatewayException;
+import cz.zerog.jsms4pi.listener.InboundCallGatewayListener;
+import cz.zerog.jsms4pi.listener.OutboundMessageGatewayListener;
+import cz.zerog.jsms4pi.message.OutboundMessage;
 
 /**
  *
  * @author zerog
  */
-public class SendSMSExample implements OutboundMessageEventListener, InboundCallEventListener {
+public class SendSMSExample implements OutboundMessageGatewayListener, InboundCallGatewayListener {
 
     public static void main(String[] args) throws GatewayException, IOException {
         BufferedReader reader = new BufferedReader(new InputStreamReader(System.in));
@@ -129,7 +131,7 @@ public class SendSMSExample implements OutboundMessageEventListener, InboundCall
 
         ATGateway gateway = new ATGateway(port);
 
-        gateway.setOutboundMessageEventListener(this);
+        gateway.setOutboundMessageListener(this);
         gateway.setInboundCallListener(this);
 
         gateway.open();

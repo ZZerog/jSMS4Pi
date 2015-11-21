@@ -1,5 +1,9 @@
 package cz.zerog.jsms4pi.example;
 
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStreamReader;
+
 /*
  * #%L
  * jSMS4Pi
@@ -22,23 +26,20 @@ package cz.zerog.jsms4pi.example;
  * #L%
  */
 import cz.zerog.jsms4pi.ATGateway;
-import cz.zerog.jsms4pi.message.OutboundMessage;
 import cz.zerog.jsms4pi.event.CallEvent;
-import cz.zerog.jsms4pi.event.InboundCallEventListener;
 import cz.zerog.jsms4pi.event.InboundMessageEvent;
-import cz.zerog.jsms4pi.event.InboundMessageEventListener;
 import cz.zerog.jsms4pi.event.OutboundMessageEvent;
-import cz.zerog.jsms4pi.event.OutboundMessageEventListener;
 import cz.zerog.jsms4pi.exception.GatewayException;
-import java.io.BufferedReader;
-import java.io.IOException;
-import java.io.InputStreamReader;
+import cz.zerog.jsms4pi.listener.InboundCallGatewayListener;
+import cz.zerog.jsms4pi.listener.InboundMessageGatewayListener;
+import cz.zerog.jsms4pi.listener.OutboundMessageGatewayListener;
+import cz.zerog.jsms4pi.message.OutboundMessage;
 
 /**
  *
  * @author zerog
  */
-public class SendAndReceiveSMSExample implements OutboundMessageEventListener, InboundCallEventListener, InboundMessageEventListener {
+public class SendAndReceiveSMSExample implements OutboundMessageGatewayListener, InboundCallGatewayListener, InboundMessageGatewayListener {
 
     public static void main(String[] args) throws GatewayException, IOException {
         BufferedReader reader = new BufferedReader(new InputStreamReader(System.in));
@@ -131,7 +132,7 @@ public class SendAndReceiveSMSExample implements OutboundMessageEventListener, I
 
         ATGateway gateway = new ATGateway(port);
 
-        gateway.setOutboundMessageEventListener(this);
+        gateway.setOutboundMessageListener(this);
         gateway.setInboundCallListener(this);
         gateway.setInboundMessageListener(this);
 

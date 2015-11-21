@@ -1,5 +1,7 @@
 package cz.zerog.jsms4pi.exception;
 
+import jssc.SerialPortException;
+
 /*
  * #%L
  * jSMS4Pi
@@ -27,22 +29,25 @@ package cz.zerog.jsms4pi.exception;
  * @author zerog
  */
 public class GatewayException extends Exception {
-    
-    public static final String SERVISE_READ_ERR = "Cannot read message servis number";
-    
-    private String port;
 
-    public GatewayException(ModemException cause, String port) {
-        super(cause);
-        this.port = port;
-    }
-    
-    public GatewayException(String message, String port) {
-        super(message+". Port: "+port);
-        this.port = port;
-    }  
-    
-    public String getPort() {
-        return port;
-    }
+	public static final String SERVISE_READ_ERR = "Cannot read message servis number";
+	public static final String RESPONSE_EXPIRED = "Response timeout expired";
+	public static final String GATEWAY_CLOSED = "Gateway is closed";
+	public static final String GATEWAY_NOT_READY = "Gateway is not ready";
+
+	private String port;
+
+	public GatewayException(SerialPortException cause) {
+		super(cause);
+		this.port = cause.getPortName();
+	}
+
+	public GatewayException(String message, String port) {
+		super(message + ". Port: " + port);
+		this.port = port;
+	}
+
+	public String getPortName() {
+		return port;
+	}
 }
