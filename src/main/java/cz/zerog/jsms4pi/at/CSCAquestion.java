@@ -1,5 +1,8 @@
 package cz.zerog.jsms4pi.at;
 
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
+
 /*
  * #%L
  * jSMS4Pi
@@ -23,8 +26,6 @@ package cz.zerog.jsms4pi.at;
  */
 import cz.zerog.jsms4pi.at.CSCA.NumberType;
 import cz.zerog.jsms4pi.exception.AtParseException;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
 /**
  * Reading Service Center Address
@@ -33,35 +34,34 @@ import java.util.regex.Pattern;
  */
 public class CSCAquestion extends AAT {
 
-    private NumberType type;
-    private String address = "";
+	private NumberType type;
+	private String address = "";
 
-    private final Pattern pattern = Pattern.compile("\\+CSCA:( *)\"(.*)\",(145|129|)\\s*");
+	private final Pattern pattern = Pattern.compile("\\+CSCA:( *)\"(.*)\",(145|129|)\\s*");
 
-    public CSCAquestion() {
-        super(CSCA.NAME, Mode.QUESTION);
-    }
+	public CSCAquestion() {
+		super(CSCA.NAME, Mode.QUESTION);
+	}
 
-    @Override
-    protected void parseQuestionResult(String response) {
-        Matcher matcher = pattern.matcher(response);
-        if (!matcher.matches()) {
-            throwExceptionInMainThread(new AtParseException(response, pattern));
-            return;
-        }
-        address = matcher.group(2);
-        String sType = matcher.group(3);
-        if(!sType.trim().equals("")) {
-            type = NumberType.valueOf(Integer.parseInt(sType));
-        }
+	@Override
+	protected void parseQuestionResult(String response) {
+		Matcher matcher = pattern.matcher(response);
+		if (!matcher.matches()) {
+			throw new AtParseException(response, pattern);
+		}
+		address = matcher.group(2);
+		String sType = matcher.group(3);
+		if (!sType.trim().equals("")) {
+			type = NumberType.valueOf(Integer.parseInt(sType));
+		}
 
-    }
+	}
 
-    public String getAddress() {
-        return address;
-    }
+	public String getAddress() {
+		return address;
+	}
 
-    public NumberType getType() {
-        return type;
-    }
+	public NumberType getType() {
+		return type;
+	}
 }

@@ -25,12 +25,14 @@ package cz.zerog.jsms4pi;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
-import cz.zerog.jsms4pi.event.InboundMessageEvent;
+import cz.zerog.jsms4pi.at.AAT;
 import cz.zerog.jsms4pi.exception.GatewayException;
-import cz.zerog.jsms4pi.listener.InboundCallGatewayListener;
-import cz.zerog.jsms4pi.listener.InboundMessageGatewayListener;
-import cz.zerog.jsms4pi.listener.OutboundMessageGatewayListener;
-import cz.zerog.jsms4pi.message.InboundMessage;
+import cz.zerog.jsms4pi.listener.gateway.GatewayStatusGatewayListener;
+import cz.zerog.jsms4pi.listener.gateway.InboundCallGatewayListener;
+import cz.zerog.jsms4pi.listener.gateway.InboundMessageGatewayListener;
+import cz.zerog.jsms4pi.listener.gateway.NetworkCellGatewayListener;
+import cz.zerog.jsms4pi.listener.gateway.NetworkStatusGatewayListener;
+import cz.zerog.jsms4pi.listener.gateway.OutboundMessageGatewayListener;
 import cz.zerog.jsms4pi.message.OutboundMessage;
 import cz.zerog.jsms4pi.notification.Notification;
 
@@ -40,87 +42,100 @@ import cz.zerog.jsms4pi.notification.Notification;
  */
 public class NullGateway extends Thread implements Gateway {
 
-    private final Logger log = LogManager.getLogger();
+	private final Logger log = LogManager.getLogger();
 
-    InboundMessageGatewayListener listener;
-    String source;
-    int timeout;
+	public NullGateway() {
 
-    public NullGateway(String source, int timeout) {
-        this.timeout = timeout;
-        this.source = source;
-        this.start();
-    }
+	}
 
-    public NullGateway() {
+	@Override
+	public void open() throws GatewayException {
+		log.info("open");
+	}
 
-    }
+	@Override
+	public void close() throws GatewayException {
+		log.info("close");
+	}
 
-    @Override
-    public void open() throws Exception {
-        log.info("open");
-    }
+	@Override
+	public boolean init() throws GatewayException {
+		log.info("init");
+		return true;
+	}
 
-    @Override
-    public void close() throws Exception {
-        log.info("close");
-    }
+	@Override
+	public String getPortName() {
+		log.info("get port name");
+		return "";
+	}
 
-    @Override
-    public boolean init() throws GatewayException {
-        log.info("init");
-        return true;
-    }
+	@Override
+	public void notify(Notification notifi) {
+		log.info("notify");
+	}
 
-    @Override
-    public String getPortName() {
-        log.info("get port name");
-        return "";
-    }
+	@Override
+	public void setInboundCallListener(InboundCallGatewayListener callListener) {
 
-    @Override
-    public void notify(Notification notifi) {
-        log.info("notify");
-    }
+	}
 
- 
+	@Override
+	public void setInboundMessageListener(InboundMessageGatewayListener listener) {
+		System.out.println("setIn");
 
-    @Override
-    public void setInboundCallListener(InboundCallGatewayListener callListener) {
-        throw new UnsupportedOperationException("Not supported.");
-    }
+	}
 
-    @Override
-    public void setInboundMessageListener(InboundMessageGatewayListener listener) {
-        System.out.println("setIn");
-        this.listener = listener;
-    }
+	@Override
+	public boolean isReadyToSend() {
+		return false;
+	}
 
-    @Override
-    public void run() {
-        try {
-            sleep(timeout * 1000);
-            System.out.println("go");
-            listener.inboundMessageEvent(new InboundMessageEvent(new InboundMessage("hoj", source)));
-        } catch (InterruptedException ex) {
+	@Override
+	public void sendMessage(OutboundMessage message) throws GatewayException {
 
-        }
-    }
-
-    @Override
-    public boolean isReadyToSend() {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
-    }
-
-    @Override
-    public void sendMessage(OutboundMessage message) throws GatewayException {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
-    }
+	}
 
 	@Override
 	public void setOutboundMessageListener(OutboundMessageGatewayListener listener) {
 		// TODO Auto-generated method stub
-		
+
+	}
+
+	@Override
+	public void setNetworkStatusListener(NetworkStatusGatewayListener networkStatusListener) {
+		// TODO Auto-generated method stub
+
+	}
+
+	@Override
+	public void setGatewayStatusListener(GatewayStatusGatewayListener gatewayListener) {
+		// TODO Auto-generated method stub
+
+	}
+
+	@Override
+	public void setNetworkCellListener(NetworkCellGatewayListener cellListener) {
+		// TODO Auto-generated method stub
+
+	}
+
+	@Override
+	public <T extends AAT> T directSendAtCommand(T cmd) throws GatewayException {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	@Override
+	public boolean isServiceAddressSet() throws GatewayException {
+		// TODO Auto-generated method stub
+		return false;
+	}
+
+	@Override
+	public void setSmsServiceAddress(String readLine) throws GatewayException {
+		// TODO Auto-generated method stub
+
 	}
 
 }

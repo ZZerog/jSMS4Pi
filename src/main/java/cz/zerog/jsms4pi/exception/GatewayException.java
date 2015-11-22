@@ -30,24 +30,48 @@ import jssc.SerialPortException;
  */
 public class GatewayException extends Exception {
 
-	public static final String SERVISE_READ_ERR = "Cannot read message servis number";
-	public static final String RESPONSE_EXPIRED = "Response timeout expired";
-	public static final String GATEWAY_CLOSED = "Gateway is closed";
-	public static final String GATEWAY_NOT_READY = "Gateway is not ready";
+	public static final String SERVISE_READ_ERR = "Cannot read the message servis number";
+	public static final String RESPONSE_EXPIRED = "The response timeout expired";
+	public static final String GATEWAY_CLOSED = "The gateway is closed";
+	public static final String GATEWAY_NOT_READY = "The gateway is not ready. A current state: ";
+	public static final String SERIAL_ERROR = "The serial port refuse parameters";
+	public static final String CANNOT_SEND = "Cannot send the text message";
 
 	private String port;
+	private String errorMessage;
 
 	public GatewayException(SerialPortException cause) {
 		super(cause);
 		this.port = cause.getPortName();
+		this.errorMessage = cause.getExceptionType();
 	}
 
-	public GatewayException(String message, String port) {
-		super(message + ". Port: " + port);
+	public GatewayException(String errorMessage, String port) {
+		super(errorMessage + ". Port: " + port);
 		this.port = port;
+		this.errorMessage = errorMessage;
+	}
+
+	public GatewayException(CmsError error, String port) {
+		this("", error, port);
+	}
+
+	public GatewayException(String message, CmsError error, String port) {
+		this(message + ". " + cmsToString(error), port);
 	}
 
 	public String getPortName() {
 		return port;
+	}
+
+	public String getErrorMessage() {
+		return errorMessage;
+	}
+
+	private static String cmsToString(CmsError cmsError) {
+		if (cmsError == null) {
+			return "";
+		}
+		return "CMS Error: " + cmsError.getNumber() + ", '" + cmsError.getText() + "'";
 	}
 }

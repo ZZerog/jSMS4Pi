@@ -1,6 +1,6 @@
 package cz.zerog.jsms4pi.listener;
 
-import cz.zerog.jsms4pi.event.InboundMessageEvent;
+import cz.zerog.jsms4pi.listener.event.InboundMessageEvent;
 
 /*
  * #%L
@@ -30,6 +30,6 @@ import cz.zerog.jsms4pi.event.InboundMessageEvent;
  */
 public interface InboundMessageListener {
 
-    public void inboundMessageEvent(String gatewayName, InboundMessageEvent inboundMessageEvent);
-    
+	public void inboundMessageEvent(String gatewayName, InboundMessageEvent inboundMessageEvent);
+
 }

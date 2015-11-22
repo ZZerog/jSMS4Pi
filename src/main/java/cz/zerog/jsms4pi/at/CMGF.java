@@ -28,52 +28,53 @@ package cz.zerog.jsms4pi.at;
  * @author zerog
  */
 public class CMGF extends AAT {
-    
-    public static final String NAME = "+CMGF";
 
-    private Mode mode = Mode.TEXT;
+	public static final String NAME = "+CMGF";
 
-    /**
-     * Default type is text mode
-     * @param mode
-     */
-    public CMGF(Mode mode) {
-        super(NAME);
-        this.mode = mode;
-    }
+	private Mode mode = Mode.TEXT;
 
-    public enum Mode {
+	/**
+	 * Default type is text mode
+	 * 
+	 * @param mode
+	 */
+	public CMGF(Mode mode) {
+		super(NAME);
+		this.mode = mode;
+	}
 
-        TEXT(1), PDU(0);
+	@Override
+	public String getCommandRequest() {
+		return getName() + "=" + mode.getCode() + AAT.CR;
+	}
 
-        int code;
+	public Mode getCMGFMode() {
+		return mode;
+	}
 
-        private Mode(int type) {
-            this.code = type;
-        }
+	public enum Mode {
 
-        public int getCode() {
-            return code;
-        }
-        
-        public static Mode valueOf(int code) {
-            switch (code) {
-                case 0:
-                    return Mode.PDU;
-                case 1:
-                    return Mode.TEXT;
-            }
-            throw new IllegalStateException("Illegal mode. Accept 0 to 1 including.");
-        }
-    }
+		TEXT(1),
+		PDU(0);
 
-    @Override
-    public String getCommandRequest() {
-        return getName()+"="+mode.getCode() + AAT.CR;
-    }
+		int code;
 
+		private Mode(int type) {
+			this.code = type;
+		}
 
-    public Mode getCMGFMode() {
-        return mode;
-    }
+		public int getCode() {
+			return code;
+		}
+
+		public static Mode valueOf(int code) {
+			switch (code) {
+			case 0:
+				return Mode.PDU;
+			case 1:
+				return Mode.TEXT;
+			}
+			throw new IllegalStateException("Illegal mode. Accept 0 to 1 including.");
+		}
+	}
 }

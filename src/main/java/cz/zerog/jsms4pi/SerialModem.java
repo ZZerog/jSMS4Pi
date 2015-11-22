@@ -24,7 +24,7 @@ package cz.zerog.jsms4pi;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Queue;
+import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.LinkedBlockingQueue;
 
 import org.apache.logging.log4j.LogManager;
@@ -37,6 +37,7 @@ import cz.zerog.jsms4pi.notification.CDSI;
 import cz.zerog.jsms4pi.notification.CLIPN;
 import cz.zerog.jsms4pi.notification.CMT;
 import cz.zerog.jsms4pi.notification.CMTI;
+import cz.zerog.jsms4pi.notification.CREG;
 import cz.zerog.jsms4pi.notification.Notification;
 import cz.zerog.jsms4pi.notification.RING;
 import cz.zerog.jsms4pi.notification.UnknownNotifications;
@@ -49,7 +50,7 @@ import jssc.SerialPortException;
  *
  * @author zerog
  */
-public class SerialModem extends Thread implements Modem, SerialPortEventListener {
+public class SerialModem implements Runnable, Modem, SerialPortEventListener, Thread.UncaughtExceptionHandler {
 
 	// Logger
 	private final Logger log = LogManager.getLogger();
@@ -68,55 +69,90 @@ public class SerialModem extends Thread implements Modem, SerialPortEventListene
 	/*
 	 * Gateway
 	 */
-	private Gateway gateway;
+	private volatile Gateway gateway;
 
 	/*
 	 * Object which waiting for part of response Notification or AT
 	 */
 	private ATResponse atResponse = null;
 
-	private final Queue<Notification> notificationQueue = new LinkedBlockingQueue<>();
+	private final BlockingQueue<Notification> notificationQueue = new LinkedBlockingQueue<>();
 
 	/*
 	 * Status of modem
 	 */
-	private Mode mode = Mode.READY;
+	private Mode mode = Mode.NOT_INIT;
 
-	public SerialModem(Gateway gateway, int boudrate, int databit, int stopbit, int parity, int atTimeout) {
-		this.gateway = gateway;
+	/*
+	 * State of notification thread
+	 */
+	private volatile NotifyState notifyState = NotifyState.READY;
+
+	/*
+	 * This thread notify gateway
+	 */
+	private Thread notifyThread;
+
+	public SerialModem(String portName, int boudrate, int databit, int stopbit, int parity, int atTimeout) {
 		this.BOUDRATE = boudrate;
 		this.AT_TIMEOUT = atTimeout;
 		this.DATA_BIT = databit;
 		this.STOP_BIT = stopbit;
 		this.PARITY = parity;
-		this.setName("SerialNotifyThread");
-		this.setDaemon(true);
-		this.start();
+		this.portName = portName;
+
+		log.info("SerialModem start (constructor)");
 	}
 
-	public SerialModem(Gateway gateway, int boudrate) {
-		this(gateway, boudrate, 8, 1, SerialPort.PARITY_NONE, 5 * 1000);
+	public SerialModem(String portName, int boudrate) {
+		this(portName, boudrate, 8, 1, SerialPort.PARITY_NONE, 30 * 1000);
 	}
 
-	public SerialModem(Gateway gateway, int boudrate, int atResponseTO) {
-		this(gateway, boudrate, 8, 1, SerialPort.PARITY_NONE, atResponseTO);
+	public SerialModem(String portName, int boudrate, int atResponseTO) {
+		this(portName, boudrate, 8, 1, SerialPort.PARITY_NONE, atResponseTO);
 	}
 
-	public SerialModem(Gateway gateway) {
-		this(gateway, SerialPort.BAUDRATE_57600);
+	public SerialModem(String portName) {
+		this(portName, SerialPort.BAUDRATE_57600);
 	}
 
 	@Override
-	public void open(String portName) throws GatewayException {
-		this.portName = portName;
+	public void uncaughtException(Thread t, Throwable e) {
+		try {
+			this.close();
+			log.error("Modem was closed by uncaught exception.");
+		} catch (GatewayException e1) {
+			log.error(e1);
+		}
+		log.error("Uncaght Exception in Thread: " + t.getName(), e);
+	}
+
+	@Override
+	public void open() throws GatewayException {
+		if (mode.equals(Mode.NOT_INIT)) {
+			throw new IllegalStateException("Gateway is not set. Use a setGateway method first");
+		}
+
 		try {
 			close();
 			serialPort = new SerialPort(portName);
 			serialPort.openPort();
-			serialPort.setParams(BOUDRATE, DATA_BIT, STOP_BIT, PARITY);
-			serialPort.setEventsMask(SerialPort.MASK_RXCHAR);
+			if (!serialPort.setParams(BOUDRATE, DATA_BIT, STOP_BIT, PARITY)) {
+				throw new GatewayException(GatewayException.SERIAL_ERROR, portName);
+			}
+			if (!serialPort.setEventsMask(SerialPort.MASK_RXCHAR)) {
+				throw new GatewayException(GatewayException.SERIAL_ERROR, portName);
+			}
 			serialPort.addEventListener(this);
 
+			// set and start thread
+			notifyThread = new Thread(this);
+			notifyThread.setName("SerialNotifyThread");
+			notifyThread.setDaemon(true);
+			notifyThread.setUncaughtExceptionHandler(this);
+			notifyThread.start();
+
+			mode = Mode.READY;
 			log.info("Port opened '{}'", portName);
 		} catch (SerialPortException ex) {
 			throw new GatewayException(ex);
@@ -128,17 +164,24 @@ public class SerialModem extends Thread implements Modem, SerialPortEventListene
 		if (serialPort != null && serialPort.isOpened()) {
 			try {
 				serialPort.closePort();
+				mode = Mode.NOT_OPEN;
 			} catch (SerialPortException ex) {
 				throw new GatewayException(ex);
 			}
+		}
+		if (notifyThread != null) {
+			notifyThread.interrupt();
 		}
 	}
 
 	@Override
 	public <T extends AAT> T send(T cmd) throws GatewayException {
-		// seve and set mode
+		if (!mode.equals(Mode.READY)) {
+			throw new GatewayException(GatewayException.GATEWAY_NOT_READY + mode, portName);
+		}
+
 		atResponse = cmd;
-		mode = Mode.AT;
+		notifyState = NotifyState.AT;
 
 		cmd.setWaitingStatus();
 		String request = cmd.getPrefix() + cmd.getRequest();
@@ -148,11 +191,11 @@ public class SerialModem extends Thread implements Modem, SerialPortEventListene
 			synchronized (cmd) {
 				cmd.wait(AT_TIMEOUT);
 			}
-			if (cmd.getException() != null) {
-				throw cmd.getException();
-			}
+
 			if (cmd.isStatus(AAT.Status.WAITING)) {
-				throw new GatewayException(GatewayException.RESPONSE_EXPIRED, portName);
+				GatewayException e = new GatewayException(GatewayException.RESPONSE_EXPIRED, portName);
+				log.warn(e, e);
+				throw e;
 			}
 		} catch (InterruptedException ex) {
 			log.warn("Interuppted, while wait for answer");
@@ -160,14 +203,19 @@ public class SerialModem extends Thread implements Modem, SerialPortEventListene
 			throw new GatewayException(ex);
 		}
 		atResponse = null;
-		mode = Mode.READY;
+		notifyState = NotifyState.READY;
 		return cmd;
 	}
 
 	@Override
 	public void run() {
-		while (true) {
-			gateway.notify(notificationQueue.poll());
+		try {
+			while (true) {
+				gateway.notify(notificationQueue.take());
+				log.info("call gateway with notification");
+			}
+		} catch (InterruptedException e) {
+			// end of thread
 		}
 	}
 
@@ -180,13 +228,10 @@ public class SerialModem extends Thread implements Modem, SerialPortEventListene
 				// read it
 				String response = serialPort.readString();
 
-				switch (mode) {
+				// log.info("NATIVE: [{}]", crrt(response));
+
+				switch (notifyState) {
 				case AT:
-					if (atResponse == null) {
-						// TODO
-						log.warn("In mode AT is atResponse = null");
-						break;
-					}
 					synchronized (atResponse) {
 						if (((AAT) atResponse).appendResponse(response)) {
 							log.info("Response: [{}]", crrt(atResponse.getResponse()));
@@ -196,12 +241,9 @@ public class SerialModem extends Thread implements Modem, SerialPortEventListene
 
 					break;
 				case READY:
-
 					atResponse = new UnknownNotifications();
-
 				case NOTIFY:
-
-					mode = Mode.NOTIFY;
+					notifyState = NotifyState.NOTIFY;
 
 					/*
 					 * If "response" is complete
@@ -226,11 +268,16 @@ public class SerialModem extends Thread implements Modem, SerialPortEventListene
 					}
 
 					if (((UnknownNotifications) atResponse).isEmpty()) {
-						mode = Mode.READY;
-						notificationQueue.addAll(internalQueue);
+						notifyState = NotifyState.READY;
+						for (Notification n : internalQueue) {
+							notificationQueue.put(n);
+							log.info("Added notification {}", n.getResponse());
+						}
 						internalQueue.clear();
 					}
-
+					break;
+				default:
+					log.warn("Unexcepted message '{}' in state '{}'.", response, mode);
 					break;
 				}
 
@@ -240,16 +287,40 @@ public class SerialModem extends Thread implements Modem, SerialPortEventListene
 		}
 	}
 
-	public String getPort() {
-		return portName;
-	}
-
+	@Override
 	public int getSpeed() {
 		return BOUDRATE;
 	}
 
+	@Override
 	public int getAtTimeout() {
 		return AT_TIMEOUT;
+	}
+
+	@Override
+	public String getPortName() {
+		return portName;
+	}
+
+	@Override
+	public void setGatewayListener(Gateway gateway) {
+		if (gateway == null) {
+			throw new NullPointerException("Gateway cannot by null");
+		}
+		if (this.gateway != null) {
+			throw new IllegalStateException("Gateway is already set");
+		}
+		this.gateway = gateway;
+		mode = Mode.NOT_OPEN;
+	}
+
+	@Override
+	public void putNotification(Notification notification) {
+		try {
+			notificationQueue.put(notification);
+		} catch (InterruptedException e) {
+			log.error(e, e);
+		}
 	}
 
 	private Notification findNotification(String notificationMessage, UnknownNotifications notifications) {
@@ -278,6 +349,10 @@ public class SerialModem extends Thread implements Modem, SerialPortEventListene
 		if ((notification = CDS.tryParse(notificationMessage, notifications)) != null) {
 			return notification;
 		}
+
+		if ((notification = CREG.tryParse(notificationMessage)) != null) {
+			return notification;
+		}
 		return null;
 	}
 
@@ -285,8 +360,7 @@ public class SerialModem extends Thread implements Modem, SerialPortEventListene
 		return input.replaceAll("\r", "<R>").replaceAll("\n", "<N>");
 	}
 
-	private enum Mode {
-
+	private enum NotifyState {
 		READY,
 		AT,
 		NOTIFY;

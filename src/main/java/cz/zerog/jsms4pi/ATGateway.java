@@ -39,6 +39,7 @@ import cz.zerog.jsms4pi.at.CGMM;
 import cz.zerog.jsms4pi.at.CGMR;
 import cz.zerog.jsms4pi.at.CGSN;
 import cz.zerog.jsms4pi.at.CLIP;
+import cz.zerog.jsms4pi.at.CMEE;
 import cz.zerog.jsms4pi.at.CMGD;
 import cz.zerog.jsms4pi.at.CMGF;
 import cz.zerog.jsms4pi.at.CMGR;
@@ -48,18 +49,27 @@ import cz.zerog.jsms4pi.at.CNMI;
 import cz.zerog.jsms4pi.at.CPINquestion;
 import cz.zerog.jsms4pi.at.CPMS;
 import cz.zerog.jsms4pi.at.CPMSsupport;
+import cz.zerog.jsms4pi.at.CREG.Registration;
 import cz.zerog.jsms4pi.at.CREGquestion;
+import cz.zerog.jsms4pi.at.CREGquestion.NetworkStatus;
 import cz.zerog.jsms4pi.at.CSCA;
 import cz.zerog.jsms4pi.at.CSCAquestion;
 import cz.zerog.jsms4pi.at.CSMP;
 import cz.zerog.jsms4pi.at.GMI;
-import cz.zerog.jsms4pi.event.CallEvent;
-import cz.zerog.jsms4pi.event.InboundMessageEvent;
-import cz.zerog.jsms4pi.event.OutboundMessageEvent;
+import cz.zerog.jsms4pi.exception.AtParseException;
 import cz.zerog.jsms4pi.exception.GatewayException;
-import cz.zerog.jsms4pi.listener.InboundCallGatewayListener;
-import cz.zerog.jsms4pi.listener.InboundMessageGatewayListener;
-import cz.zerog.jsms4pi.listener.OutboundMessageGatewayListener;
+import cz.zerog.jsms4pi.listener.event.CallEvent;
+import cz.zerog.jsms4pi.listener.event.GatewayStatusEvent;
+import cz.zerog.jsms4pi.listener.event.InboundMessageEvent;
+import cz.zerog.jsms4pi.listener.event.NetworkCellEvent;
+import cz.zerog.jsms4pi.listener.event.NetworkStatusEvent;
+import cz.zerog.jsms4pi.listener.event.OutboundMessageEvent;
+import cz.zerog.jsms4pi.listener.gateway.GatewayStatusGatewayListener;
+import cz.zerog.jsms4pi.listener.gateway.InboundCallGatewayListener;
+import cz.zerog.jsms4pi.listener.gateway.InboundMessageGatewayListener;
+import cz.zerog.jsms4pi.listener.gateway.NetworkCellGatewayListener;
+import cz.zerog.jsms4pi.listener.gateway.NetworkStatusGatewayListener;
+import cz.zerog.jsms4pi.listener.gateway.OutboundMessageGatewayListener;
 import cz.zerog.jsms4pi.message.InboundMessage;
 import cz.zerog.jsms4pi.message.OutboundMessage;
 import cz.zerog.jsms4pi.notification.CDS;
@@ -67,7 +77,9 @@ import cz.zerog.jsms4pi.notification.CDSI;
 import cz.zerog.jsms4pi.notification.CLIPN;
 import cz.zerog.jsms4pi.notification.CMT;
 import cz.zerog.jsms4pi.notification.CMTI;
+import cz.zerog.jsms4pi.notification.CREG;
 import cz.zerog.jsms4pi.notification.Notification;
+import cz.zerog.jsms4pi.notification.OutboundMessageNotification;
 import cz.zerog.jsms4pi.notification.RING;
 import cz.zerog.jsms4pi.tool.SPStatus;
 import cz.zerog.jsms4pi.tool.TypeOfMemory;
@@ -86,7 +98,8 @@ public class ATGateway implements Gateway {
 	 * RS-232 default setting
 	 */
 	private final static int BOUDRATE = 57600;
-	private final static int AT_RESPONSE_TO = 5 * 1000;
+	// private final static int AT_RESPONSE_TO = 5 * 1000;
+	private final static int AT_RESPONSE_TO = 30 * 1000;
 	private final static int DATA_BIT = 8;
 	private final static int STOP_BIT = 1;
 	private final static int PARITY = 0; // NONE
@@ -94,7 +107,7 @@ public class ATGateway implements Gateway {
 	/**
 	 * Modem
 	 */
-	private final SerialModem modem;
+	private final Modem modem;
 
 	/**
 	 * Address of SMS service
@@ -113,6 +126,13 @@ public class ATGateway implements Gateway {
 	 */
 	private Status status = Status.CLOSED;
 
+	/*
+	 * Saved value of last network status (CREG). If set CREG with <n>=2, is
+	 * enable network registration and location information unsolicited
+	 * notification. For separation only network status is saved its last state.
+	 */
+	private NetworkStatus cregLastNetworkStatus = null;
+
 	/**
 	 * List of outgoing message
 	 */
@@ -124,27 +144,28 @@ public class ATGateway implements Gateway {
 	private OutboundMessageGatewayListener smsStatusListener;
 	private InboundCallGatewayListener callListener;
 	private InboundMessageGatewayListener inboundMessageLinstener;
+	private NetworkStatusGatewayListener networkStatusListener;
+	private NetworkCellGatewayListener networkCellListener;
+	private GatewayStatusGatewayListener gatewayStatusListener;
 
-	/*
-	 * Serial port associate with gateway
-	 */
-	private final String port;
-
-	// Global gateway setting
-	private boolean globalDeliveryReport;
-	private boolean globalValidityPeriod;
-
-	public ATGateway(String portname) {
-		this(portname, BOUDRATE);
+	public ATGateway(Modem modem) {
+		this.modem = modem;
 	}
 
-	public ATGateway(String portname, int boudrate) {
-		this(portname, boudrate, DATA_BIT, STOP_BIT, PARITY, AT_RESPONSE_TO);
+	public static Gateway getDefaultFactory(String serialPortName) {
+		return getDefaultFactory(serialPortName, BOUDRATE);
 	}
 
-	public ATGateway(String portname, int serialSpeed, int databit, int stopbit, int parity, int atTimeOut) {
-		modem = new SerialModem(this, serialSpeed, databit, stopbit, parity, atTimeOut);
-		this.port = portname;
+	public static Gateway getDefaultFactory(String portname, int boudrate) {
+		return getDefaultFactory(portname, boudrate, DATA_BIT, STOP_BIT, PARITY, AT_RESPONSE_TO);
+	}
+
+	public static Gateway getDefaultFactory(String portname, int serialSpeed, int databit, int stopbit, int parity,
+			int atTimeOut) {
+		Modem modem = new SerialModem(portname, serialSpeed, databit, stopbit, parity, atTimeOut);
+		Gateway gateway = new ATGateway(modem);
+		modem.setGatewayListener(gateway);
+		return gateway;
 	}
 
 	/**
@@ -154,9 +175,9 @@ public class ATGateway implements Gateway {
 	 */
 	@Override
 	public void open() throws GatewayException {
-		modem.open(port);
-		status = Status.OPENED;
-		log.info("Gateway is ready, port '{}'", port);
+		modem.open();
+		changeStatus(Status.OPENED);
+		log.info("Gateway is ready, port '{}'", modem.getPortName());
 	}
 
 	/**
@@ -167,8 +188,8 @@ public class ATGateway implements Gateway {
 	@Override
 	public void close() throws GatewayException {
 		modem.close();
-		status = Status.CLOSED;
-		log.info("Gateway is closed, port '{}' ", port);
+		changeStatus(Status.CLOSED);
+		log.info("Gateway is closed, port '{}' ", modem.getPortName());
 	}
 
 	/**
@@ -181,7 +202,7 @@ public class ATGateway implements Gateway {
 	public boolean init() throws GatewayException {
 
 		if (status.getStatusCode() <= Status.CLOSED.getStatusCode()) {
-			throw new GatewayException(GatewayException.GATEWAY_CLOSED, port);
+			throw new GatewayException(GatewayException.GATEWAY_CLOSED, modem.getPortName());
 		}
 
 		// only test
@@ -201,11 +222,13 @@ public class ATGateway implements Gateway {
 			return false;
 		}
 
+		// enable CMS error message
+		modem.send(new CMEE(CMEE.Status.DISABLE));
+
 		// set sms service address
 		if (smsServiceAddress == null) {
 			if (!isServiceAddressSet()) {
-				log.info(
-						"Cannot send message before set Service Address!.  Use method setSmsServiceAddress(service_number);");
+				log.warn("The SMS Service Center Address is not set");
 			} else {
 				// get and set Service Address (fix bug in modems)
 				CSCAquestion cscaq = modem.send(new CSCAquestion());
@@ -226,7 +249,7 @@ public class ATGateway implements Gateway {
 		// use delivery report and time out expiration
 		modem.send(new CSMP(CSMP.DELIVERY_REPORT | CSMP.VALIDITY_PERIOD));
 
-		// test suppored stores
+		// test supported stores
 		CPMSsupport cpmss = new CPMSsupport();
 		if (modem.send(cpmss).isStatusOK()) {
 			mem1RW = getPreferedMemoryBySuppored(cpmss.getMemory1(), config.getMemory1RW());
@@ -255,14 +278,18 @@ public class ATGateway implements Gateway {
 			log.warn("Cannot set RING notification. Inbound Call Event  is out of service!");
 		}
 
-		status = Status.INITIALIZED;
+		if (!modem.send(new cz.zerog.jsms4pi.at.CREG(Registration.ENABLE_EXTEND)).isStatusOK()) {
+			log.warn("Cannot set Network Status notification. Network Status Event is out of service!");
+		}
+
+		changeStatus(Status.INITIALIZED);
 		log.info("Gateway initialized successfully");
 
 		// test for network
 		isRegisteredIntoNetwork();
 
 		if (status.equals(Status.NETWORK_OK)) {
-			status = Status.READY;
+			changeStatus(Status.READY);
 		}
 
 		return true;
@@ -272,7 +299,7 @@ public class ATGateway implements Gateway {
 	public void notify(Notification notification) {
 		try {
 			/*
-			 * Delivery status Saved into modem memory
+			 * Delivery status saved into modem memory
 			 */
 			if (notification instanceof CDSI) {
 				CDSI cdsi = (CDSI) notification;
@@ -283,12 +310,8 @@ public class ATGateway implements Gateway {
 				// read status repord
 				CMGR cmgr = modem.send(new CMGR(CMGR.Mode.SMS_STATUS_REPORT, cdsi.getSMSIndex()));
 				if (!cmgr.isStatusOK()) {
-					int eCode = cmgr.getCmsErrorCode();
-					if (eCode > 0) {
-						cmgr.throwExceptionInMainThread(new RuntimeException(
-								"Cannot read sms status by index (" + eCode + "): " + cdsi.getSMSIndex()));
-						return;
-					}
+					new GatewayException("Cannot read sms status by index(" + cdsi.getSMSIndex() + ")",
+							cmgr.getCmsError(), modem.getPortName());
 				}
 				// delete status repord
 				modem.send(new CMGD(cdsi.getSMSIndex()));
@@ -296,7 +319,8 @@ public class ATGateway implements Gateway {
 				modem.send(new CPMS(mem1RW));
 
 				if (!findOutboudMessage(cmgr.getMr(), cmgr.getSp())) {
-					throw new RuntimeException("Cannot find  message with index " + cdsi.getSMSIndex());
+					throw new GatewayException("Cannot find  message with index " + cdsi.getSMSIndex(),
+							modem.getPortName());
 				}
 			}
 
@@ -306,7 +330,7 @@ public class ATGateway implements Gateway {
 			if (notification instanceof CDS) {
 				CDS cds = (CDS) notification;
 				if (!findOutboudMessage(cds.getMr(), cds.getStatus())) {
-					throw new RuntimeException("Cannot find  message with index " + cds.getMr());
+					throw new GatewayException("Cannot find  message with index " + cds.getMr(), modem.getPortName());
 				}
 			}
 
@@ -314,18 +338,14 @@ public class ATGateway implements Gateway {
 			 * Incoming call
 			 */
 			if (notification instanceof RING) {
-				log.info("Incoming call 1!");
 				RING ring = (RING) notification;
 				createInboundCallEvent(ring.getCallerId(), ring.getValidity());
-				// return;
-
-				throw new RuntimeException("Ahoj");
+				return;
 			}
 			/*
 			 * Incoming call
 			 */
 			if (notification instanceof CLIPN) {
-				log.info("Incoming call 2!");
 				CLIPN ring = (CLIPN) notification;
 				createInboundCallEvent(ring.getCallerId(), RING.Validity.VALID);
 				return;
@@ -335,17 +355,14 @@ public class ATGateway implements Gateway {
 			 */
 			if (notification instanceof CMTI) {
 				CMTI cmti = (CMTI) notification;
-				// change to memory from CDSI notification
+				// change to memory from CMTI notification
 				modem.send(new CPMS(cmti.getMemoryType()));
 				// read sms
 				CMGR cmgr = modem.send(new CMGR(CMGR.Mode.SMS_DELIVERY, cmti.getSMSIndex()));
 				if (!cmgr.isStatusOK()) {
-					int eCode = cmgr.getCmsErrorCode();
-					if (eCode > 0) {
-						cmgr.throwExceptionInMainThread(new RuntimeException(
-								"Cannot read sms by index (" + eCode + "): " + cmti.getSMSIndex()));
-						return;
-					}
+					new GatewayException("Cannot read sms by index: " + cmti.getSMSIndex(), cmgr.getCmsError(),
+							modem.getPortName());
+
 				}
 				// delete sms
 				modem.send(new CMGD(cmti.getSMSIndex()));
@@ -363,8 +380,40 @@ public class ATGateway implements Gateway {
 				createInboundMessageEvent(new InboundMessage(cmt.getData(), cmt.getOa()));
 				return;
 			}
-		} catch (GatewayException ex) {
-			log.warn("Exception while notification process", ex);
+
+			/*
+			 * Network and Cell Status
+			 */
+			if (notification instanceof CREG) {
+				CREG creg = (CREG) notification;
+				if (!creg.useSMS()) {
+					if (status.getStatusCode() > Status.INITIALIZED.getStatusCode()) {
+						changeStatus(Status.INITIALIZED);
+					}
+				} else {
+					// FIXME !!
+				}
+
+				// test if is change in CELL or NETWORK STATUS
+				if (!creg.getNetworkStatus().equals(this.cregLastNetworkStatus)) {
+					cregLastNetworkStatus = creg.getNetworkStatus();
+					createNetworkStatusEvent(creg.getNetworkStatus());
+					log.info("Network status notification");
+				}
+
+				createCellStatusEvent(creg.getLac(), creg.getCi());
+				return;
+			}
+
+			/*
+			 * Outbound message changed status
+			 */
+			if (notification instanceof OutboundMessageNotification) {
+				createOutboundEvent(((OutboundMessageNotification) notification).getOutboundMessage());
+			}
+
+		} catch (GatewayException | AtParseException ex) {
+			log.warn("The exception while notification process", ex);
 		}
 	}
 
@@ -387,8 +436,23 @@ public class ATGateway implements Gateway {
 	}
 
 	@Override
+	public void setNetworkStatusListener(NetworkStatusGatewayListener networkStatusListener) {
+		this.networkStatusListener = networkStatusListener;
+	}
+
+	@Override
+	public void setGatewayStatusListener(GatewayStatusGatewayListener gatewayListener) {
+		this.gatewayStatusListener = gatewayListener;
+	}
+
+	@Override
+	public void setNetworkCellListener(NetworkCellGatewayListener networkCellListener) {
+		this.networkCellListener = networkCellListener;
+	}
+
+	@Override
 	public String getPortName() {
-		return port;
+		return modem.getPortName();
 	}
 
 	public int getSerialSpeed() {
@@ -399,15 +463,17 @@ public class ATGateway implements Gateway {
 		return modem.getAtTimeout();
 	}
 
+	@Override
 	public boolean isServiceAddressSet() throws GatewayException {
 		CSCAquestion cscaq = modem.send(new CSCAquestion());
 		if (!cscaq.isStatusOK()) {
-			throw new GatewayException(GatewayException.SERVISE_READ_ERR, port);
+			throw new GatewayException(GatewayException.SERVISE_READ_ERR, modem.getPortName());
 		}
 		return cscaq.getAddress().length() > 0;
 
 	}
 
+	@Override
 	public <T extends AAT> T directSendAtCommand(T cmd) throws GatewayException {
 		return modem.send(cmd);
 	}
@@ -432,34 +498,37 @@ public class ATGateway implements Gateway {
 	 */
 	@Override
 	public void sendMessage(OutboundMessage message) throws GatewayException {
-		if (!status.equals(status.READY)) {
-			throw new GatewayException(GatewayException.GATEWAY_NOT_READY, port);
+		if (!status.equals(Status.READY)) {
+			throw new GatewayException(GatewayException.GATEWAY_NOT_READY, modem.getPortName());
 		}
+
+		changeStatus(Status.BUSY);
 
 		if (smsServiceAddress == null) {
-			throw new GatewayException("Sms Service Address is empty. Set it first.", port);
+			log.warn("The SMS Service Center Address is not set. Set to 1234");
+			smsServiceAddress = "1234";
 		}
 
-		// if (!isRegisteredIntoNetwork() || !sufficientSignal()) {
-		// message.setStatus(OutboundMessage.Status.NOT_SEND_NO_SIGNAL);
-		// return;
-		// }
+		if (!modem.send(new CSCA(smsServiceAddress)).isStatusOK()) {
+			throw new GatewayException("Modem cannot accept sms service address", modem.getPortName());
+		}
+
 		if (message.isDeliveryReport()) {
 			// TODO impl. me
 		}
 
-		CMGS cmgs = new CMGS(message.getDestination());
-		if (!modem.send(cmgs).isStatusOK()) {
-			// TODO
-		}
+		modem.send(new CMGS(message.getDestination()));
 		CMGSText cmgstext = modem.send(new CMGSText(message.getText()));
 		if (!cmgstext.isStatusOK()) {
-			// TODO
+			throw new GatewayException(GatewayException.CANNOT_SEND, cmgstext.getCmsError(), modem.getPortName());
 		}
+
 		message.setIndex(cmgstext.getIndex());
 		message.setStatus(OutboundMessage.Status.SENDED_NOT_ACK);
+		modem.putNotification(new OutboundMessageNotification(message));
 		outgoingList.add(message);
 
+		changeStatus(Status.READY);
 	}
 
 	/**
@@ -468,28 +537,17 @@ public class ATGateway implements Gateway {
 	 * @param address
 	 * @throws GatewayException
 	 */
+	@Override
 	public void setSmsServiceAddress(String address) throws GatewayException {
 		Pattern pattern = Pattern.compile("^\\+?[1-9]\\d{1,14}$");
 		Matcher matcher = pattern.matcher(address);
 
 		if (matcher.matches()) {
-			switch (status) {
-			case OPENED:
-
-				if (modem.send(new CSCA(address)).isStatusOK()) {
-					smsServiceAddress = address;
-				} else {
-					throw new GatewayException("Modem cannot accept sms service address", port);
-				}
-
-				break;
-			case CLOSED:
-				smsServiceAddress = address;
-				break;
-			}
-		} else {
-			throw new GatewayException("The Message Service Address has invalid format", port);
+			smsServiceAddress = address;
+			return;
 		}
+
+		throw new GatewayException("The Message Service Address has invalid format", modem.getPortName());
 	}
 
 	private boolean findOutboudMessage(int messIndex, SPStatus messStatus) {
@@ -500,12 +558,12 @@ public class ATGateway implements Gateway {
 				case RECEIVED: // 0
 					outMess.setStatus(OutboundMessage.Status.SENDED_ACK);
 					outgoingList.remove(outMess);
-					createOutboundEvent(outMess, outMess.getStatus());
+					createOutboundEvent(outMess);
 					break;
 				case SEVICE_REJECTED: // 99
 					outMess.setStatus(OutboundMessage.Status.EXPIRED);
 					outgoingList.remove(outMess);
-					createOutboundEvent(outMess, outMess.getStatus());
+					createOutboundEvent(outMess);
 					break;
 				default:
 					log.warn("Unknown Outboud Message status: '{}'", messStatus);
@@ -516,9 +574,13 @@ public class ATGateway implements Gateway {
 		return false;
 	}
 
-	private void createOutboundEvent(OutboundMessage mess, OutboundMessage.Status status) {
+	/*
+	 * Private methods
+	 */
+
+	private void createOutboundEvent(OutboundMessage mess) {
 		if (smsStatusListener != null) {
-			smsStatusListener.outboundMessageEvent(new OutboundMessageEvent(mess, status));
+			smsStatusListener.outboundMessageEvent(new OutboundMessageEvent(mess, mess.getStatus()));
 		}
 	}
 
@@ -536,9 +598,29 @@ public class ATGateway implements Gateway {
 		}
 	}
 
-	/*
-	 * Private methods
-	 */
+	private void createNetworkStatusEvent(CREGquestion.NetworkStatus status) {
+		if (networkStatusListener != null) {
+			networkStatusListener.networkStatusEvent(new NetworkStatusEvent(status));
+		}
+	}
+
+	private void createGatewayStatusEvent(Gateway.Status status) {
+		if (gatewayStatusListener != null) {
+			gatewayStatusListener.gatewayStatusEvent(new GatewayStatusEvent(status));
+		}
+	}
+
+	private void createCellStatusEvent(int lac, int ci) {
+		if (networkCellListener != null) {
+			networkCellListener.networkStatusEvent(new NetworkCellEvent(lac, ci));
+		}
+	}
+
+	private void changeStatus(Gateway.Status status) {
+		this.status = status;
+		createGatewayStatusEvent(status);
+	}
+
 	private TypeOfMemory getPreferedMemoryBySuppored(TypeOfMemory[] supportedMemoryList, TypeOfMemory defaulMemory) {
 		List<TypeOfMemory> supportedMemory = Arrays.asList(supportedMemoryList);
 		if (supportedMemory.contains(defaulMemory)) {
@@ -560,7 +642,7 @@ public class ATGateway implements Gateway {
 		if (!cregq.useSMS()) {
 			return false;
 		}
-		this.status = Status.NETWORK_OK;
+		changeStatus(Status.NETWORK_OK);
 		return true;
 	}
 
@@ -626,44 +708,4 @@ public class ATGateway implements Gateway {
 		return status.equals(Status.READY);
 	}
 
-	/**
-	 * Gateway status
-	 */
-	public enum Status {
-
-		/*
-		 * Serial port is closed
-		 */
-		CLOSED(0),
-		/*
-		 * Serial port is open
-		 */
-		OPENED(1),
-		/*
-		 * No PIN or accepted PIN
-		 */
-		SIM_OK(2),
-		/*
-		 * Modem is initialized
-		 */
-		INITIALIZED(3),
-		/*
-		 * Network is acceptable
-		 */
-		NETWORK_OK(4),
-		/*
-		 * Ready for usage
-		 */
-		READY(5);
-
-		private final int code;
-
-		private Status(int code) {
-			this.code = code;
-		}
-
-		public int getStatusCode() {
-			return code;
-		}
-	}
 }

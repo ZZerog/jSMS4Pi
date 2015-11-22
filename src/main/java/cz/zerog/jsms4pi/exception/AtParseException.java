@@ -1,8 +1,9 @@
 package cz.zerog.jsms4pi.exception;
 
-import cz.zerog.jsms4pi.at.AAT;
 import java.util.regex.Pattern;
 import java.util.regex.PatternSyntaxException;
+
+import cz.zerog.jsms4pi.at.AAT;
 
 /*
  * #%L
@@ -31,86 +32,85 @@ import java.util.regex.PatternSyntaxException;
  */
 public class AtParseException extends IllegalArgumentException {
 
-    private final static String desc = "Cannot parse resut of AT. Problematic section in the pattern near index ";
-    private final static String descP = "Pattern :  ";
-    private final static String descR = "Response : ";
+	private final static String desc = "Cannot parse resut of AT. Problematic section in the pattern near index ";
+	private final static String descP = "Pattern :  ";
+	private final static String descR = "Response : ";
 
-   
-    private final String response;
-    private final String pattern;
+	private final String response;
+	private final String pattern;
 
-    public AtParseException(String response, Pattern pattern) {
-        this.response = response;
-        this.pattern = pattern.pattern();
-    }
+	public AtParseException(String response, Pattern pattern) {
+		this.response = response;
+		this.pattern = pattern.pattern();
+	}
 
-    @Override
-    public String getMessage() {
-        int index = calculatePatterIndex();
-        StringBuilder sb = new StringBuilder();
-        sb.append(desc);
-        sb.append(index);
-        sb.append(System.lineSeparator());
-        sb.append(descR);
-        sb.append('[');
-        sb.append(AAT.crrt(response));
-        sb.append(']');
-        sb.append(System.lineSeparator());
-        sb.append(descP);
-        sb.append(pattern);
-        sb.append(System.lineSeparator());
-        for (int i = 1; i < index+descP.length(); i++) {
-            sb.append(' ');
-        }
-        sb.append('^');
+	@Override
+	public String getMessage() {
+		int index = calculatePatterIndex();
+		StringBuilder sb = new StringBuilder();
+		sb.append(desc);
+		sb.append(index);
+		sb.append(System.lineSeparator());
+		sb.append(descR);
+		sb.append('[');
+		sb.append(AAT.crrt(response));
+		sb.append(']');
+		sb.append(System.lineSeparator());
+		sb.append(descP);
+		sb.append(pattern);
+		sb.append(System.lineSeparator());
+		for (int i = 1; i < index + descP.length(); i++) {
+			sb.append(' ');
+		}
+		sb.append('^');
 
-        return sb.toString();
-    }
+		return sb.toString();
+	}
 
-    private int calculatePatterIndex() {
-        int pIndex = 1;
+	private int calculatePatterIndex() {
+		int pIndex = 1;
 
-        Pattern patt = null;
+		Pattern patt = null;
 
-        boolean match = false;
-        while (true) {
+		boolean match = false;
+		while (true) {
 
-            while (true) {
-                try {
-                    if(pIndex>pattern.length()) {
-                        return pattern.length();
-                    }
-                    String pat = pattern.substring(0, pIndex);
-                    patt = Pattern.compile(pat);
-                } catch (PatternSyntaxException e) {
-                    pIndex++;
-                    continue;
-                }
-                break;
-            }
+			while (true) {
+				try {
+					if (pIndex > pattern.length()) {
+						return pattern.length();
+					}
+					String pat = pattern.substring(0, pIndex);
+					patt = Pattern.compile(pat);
+				} catch (PatternSyntaxException e) {
+					pIndex++;
+					continue;
+				}
+				break;
+			}
 
-            for (int i = 1; i < response.length(); i++) {
-                String newLine = response.substring(0, i);
-                if (patt.matcher(newLine).matches()) {
-                    match = true;
-                }
-            }
+			for (int i = 1; i < response.length(); i++) {
+				String newLine = response.substring(0, i);
+				if (patt.matcher(newLine).matches()) {
+					match = true;
+				}
+			}
 
-            if (!match) {
-                return pIndex;
-            }
+			if (!match) {
+				return pIndex;
+			}
 
-            match = false;
-            pIndex++;
-        }
-    }
+			match = false;
+			pIndex++;
+		}
+	}
 
-    public String getResponse() {
-        return response;
-    }
+	public String getResponse() {
+		return response;
+	}
 
-    public String getPattern() {
-        return pattern;
-    }
-    
+	public String getPattern() {
+		return pattern;
+	}
+
 }

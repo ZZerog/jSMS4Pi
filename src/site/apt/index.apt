@@ -1,0 +1,48 @@
+            ------
+            jSMS4pi - Home
+            ------
+
+
+jSMS4Pi
+
+	jSMS4Pi is simple Java library which provides SMS API for USB 3G modems (3G dongles) or other serial port (RS232) modems. 
+	It provides abstraction for sent / received sms and other features. Communication with modem is done through AT commands. 
+	jSMS4Pi is ideal for  small stand alone computers (as RaspberryPI) without internet connections. If you want to send a SMS 
+	through internet try any of Bulksms service.
+
+
+* How it works
+
+	USB 3G modem creates a virtual serial port after connecting to the computer. jSMS4Pi sends AT commands through serial port to the modem and reads the response.
+  
+
+
+* Supported modems
+
+	jSMS4Pi is using JSSC as the serial port library and supports Win32(Win98-Win8), Win64, Linux(x86, x86-64, ARM), 
+	Solaris(x86, x86-64), Mac OS X 10.5 and higher(x86, x86-64, PPC, PPC64) See JSSC {{{https://github.com/scream3r/java-simple-serial-connector}homepage}}. So far it is only tested 
+	for Linux OS (Debian) and on Raspberry Pi (Raspbian).
+
+
+* Supported OS
+
+	jSMS4Pi  should support all modems which use (virtual) serial port (USB 3G modems, real serial port modems, cell phones, etc.). 
+	Exceptions are modems that implement incomplete AT command or do not comply with specifications. The set of tested devices will 
+	be periodically updated. For more information see section: “{{{./modems.html}Supported Modems}}” 
+	
+* Basic Features
+
+	* Send / Receive text message
+
+	* Inbound calls detection
+
+	* Get manufacturing information and the IMEI
+
+	* Tracking BTS cells
+
+* Releases
+
+	2015-09-05 :: 1.0.0-SNAPSHOT
+ 	
+ 	*  Initial ALPHA release
+ 

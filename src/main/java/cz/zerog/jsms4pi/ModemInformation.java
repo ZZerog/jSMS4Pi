@@ -32,37 +32,61 @@ import java.util.List;
  */
 public class ModemInformation {
 
-    private String manufaturer;
-    private String model;
-    private String imei;
+	private String manufaturer;
+	private String model;
+	private String imei;
 
-    private List<String> info = new ArrayList();
+	private List<String> info = new ArrayList();
 
-    public Iterable<String> getNames() {
-        
-        //IMEI has the highest priority
-        info.add(imei);
-        info.add(manufaturer+"_"+model);
-        info.add(manufaturer);
-        
-        
-        return new Iterable<String>() {
-            @Override
-            public Iterator<java.lang.String> iterator() {
-                return info.iterator();
-            }
-        };
-    }
+	public Iterable<String> getNames() {
 
-    public void setManufacturer(String manufaturer) {
-        this.manufaturer = manufaturer.replaceAll(" ", "-");
-    }
+		// IMEI has the highest priority
+		info.add(imei);
+		info.add(manufaturer + "_" + model);
+		info.add(manufaturer);
 
-    public void setModelAndCapabilities(String model) {
-        this.model = model.replaceAll(" ", "-");
-    }
+		return new Iterable<String>() {
+			@Override
+			public Iterator<java.lang.String> iterator() {
+				return info.iterator();
+			}
+		};
+	}
 
-    public void setImei(String imei) {
-        this.imei = imei;
-    }
+	public void setManufacturer(String manufaturer) {
+		this.manufaturer = manufaturer.replaceAll(" ", "-");
+	}
+
+	public void setModelAndCapabilities(String model) {
+		this.model = model.replaceAll(" ", "-");
+	}
+
+	public void setImei(String imei) {
+		this.imei = imei;
+	}
+
+	public String getManugaturerAndModem() {
+		return manufaturer + "_" + model;
+	}
+
+	/**
+	 * @return the manufaturer
+	 */
+	public String getManufaturer() {
+		return manufaturer;
+	}
+
+	/**
+	 * @return the model
+	 */
+	public String getModel() {
+		return model;
+	}
+
+	/**
+	 * @return the imei
+	 */
+	public String getImei() {
+		return imei;
+	}
 }

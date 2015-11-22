@@ -1,0 +1,36 @@
+.well {
+	background-color: #fff;
+	border: 1px solid #ff9900;
+}
+
+a {
+	color: #cc7a00;
+}
+
+.nav-list>li>a {
+  padding: 3px 25px;
+}
+
+.nav>li>a:hover, .nav>li>a:focus {
+  color: #ff9900;
+  background-color: #fff;
+}
+
+.nav-header {
+	color: #ff9900;
+	font-size: inherit;
+}
+
+.nav-list>.active>a, .nav-list>.active>a:hover, .nav-list>.active>a:focus {
+	background-color: #ff9900;
+	text-shadow: none;  
+}
+
+.breadcrumb {
+	border: 1px solid #ff9900;
+	background-color: #fff;
+}
+
+.table-striped tbody>tr:nth-child(odd)>td, .table-striped tbody>tr:nth-child(odd)>th {
+  background-color: #FFFCBB;
+}

@@ -34,32 +34,27 @@ package cz.zerog.jsms4pi.at;
  */
 public class CMGS extends AAT {
 
-    public static String NAME = "+CMGS";
+	public static String NAME = "+CMGS";
 
-    private final String destination;
+	private final String destination;
 
-    public CMGS(String destinationNumber) {
-        super(NAME);
-        this.destination = destinationNumber;
-    }
+	public CMGS(String destinationNumber) {
+		super(NAME);
+		this.destination = destinationNumber;
+	}
 
-    @Override
-    public String getRequest() {
-        return getName() + "=\"" + destination + "\"" + AAT.CR;
-    }
+	@Override
+	public String getRequest() {
+		return getName() + "=\"" + destination + "\"" + AAT.CR;
+	}
 
-    @Override
-    protected boolean isComplete() {
-        if (response.indexOf(">") >= 0 ) {
-            status = Status.OK;
-            return true;
-        } 
-        if (response.indexOf("ERROR") > 0) {
-            parseCMS(response);
-            status = Status.ERROR;
-            return true;            
-        }
-        return false;
-    }
+	@Override
+	protected boolean isComplete() {
+		if (response.indexOf(">") >= 0) {
+			status = Status.OK;
+			return true;
+		}
+		return false;
+	}
 
 }

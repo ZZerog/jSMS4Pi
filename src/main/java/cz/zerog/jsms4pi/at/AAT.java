@@ -1,5 +1,8 @@
 package cz.zerog.jsms4pi.at;
 
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
+
 /*
  * #%L
  * jSMS4Pi
@@ -22,8 +25,7 @@ package cz.zerog.jsms4pi.at;
  * #L%
  */
 import cz.zerog.jsms4pi.ATResponse;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
+import cz.zerog.jsms4pi.exception.CmsError;
 
 /**
  *
@@ -31,189 +33,176 @@ import java.util.regex.Pattern;
  */
 public abstract class AAT implements ATResponse {
 
-    public static final char CR = 0x0d;
-    public static final int CTRLZ = 0x1A;
-    private final String OK_SEQUENCE = "OK\r\n";
+	public static final char CR = 0x0d;
+	public static final int CTRLZ = 0x1A;
+	private final String OK_SEQUENCE = "OK\r\n";
 
-    private final Pattern cmsErrorPattern = Pattern.compile("\\s*\\+CMS: *ERROR: *(\\d{1,3})\\s*");
+	private final Pattern cmsErrorPattern = Pattern.compile("\\+CMS *ERROR: *(\\d{1,3})");
 
-    private RuntimeException e;
+	protected final StringBuilder response = new StringBuilder();
+	protected Status status = Status.READY;
+	private Mode mode;
+	private CmsError cmsError = null;
 
-    protected final StringBuilder response = new StringBuilder();
-    protected Status status = Status.READY;
-    private Mode mode;
-    private int cmsErrorCode = -1;
+	private String name;
 
-    private String name;
+	public AAT(String commandName, Mode mode) {
+		this.name = commandName;
+		this.mode = mode;
+	}
 
-    private AAT() {
-    }
+	public AAT(String commandName) {
+		this(commandName, Mode.COMMAND);
+	}
 
-    public AAT(String commandName, Mode mode) {
-        this.name = commandName;
-        this.mode = mode;
-    }
+	public void setWaitingStatus() {
+		status = Status.WAITING;
+	}
 
-    public AAT(String commandName) {
-        this(commandName, Mode.COMMAND);
-    }
+	@Override
+	public boolean appendResponse(String partOfResponse) {
+		if (partOfResponse == null) {
+			return false;
+		}
+		response.append(partOfResponse);
+		return isComplete();
+	}
 
-    public void setWaitingStatus() {
-        status = Status.WAITING;
-    }
+	private String parseOkResponse(String response) {
+		return response.substring(2, response.indexOf(OK_SEQUENCE, 2));
+	}
 
-    @Override
-    public boolean appendResponse(String partOfResponse) {
-        if (partOfResponse == null) {
-            return false;
-        }
-        response.append(partOfResponse);
-        return isComplete();
-    }
+	protected boolean isComplete() {
+		if (response.indexOf(OK_SEQUENCE) > 0) {
 
-    public void throwExceptionInMainThread(RuntimeException e) {
-        this.e = e;
-    }
+			switch (mode) {
+			case COMMAND:
+				parseCommandResult(parseOkResponse(response.toString()));
+				break;
+			case QUESTION:
+				parseQuestionResult(parseOkResponse(response.toString()));
+				break;
+			case SUPPORT:
+				parseSupportResult(parseOkResponse(response.toString()));
+				break;
+			}
 
-    public RuntimeException getException() {
-        return e;
-    }
+			status = Status.OK;
+			return true;
+		}
+		if (response.indexOf("ERROR") > 0) {
+			status = Status.ERROR;
+			parseCMS(response);
+			return true;
+		}
+		return false;
+	}
 
-    private String parseOkResponse(String response) {
-        return response.substring(2, response.indexOf(OK_SEQUENCE, 2));
-    }
+	protected void parseCMS(StringBuilder response) {
+		Matcher matcher = cmsErrorPattern.matcher(response);
+		if (matcher.find()) {
+			cmsError = CmsError.valueOf(Integer.parseInt(matcher.group(1)));
+		}
+	}
 
-    protected boolean isComplete() {
-        if (response.indexOf(OK_SEQUENCE) > 0) {
+	public CmsError getCmsError() {
+		return cmsError;
+	}
 
-            switch (mode) {
-                case COMMAND:
-                    parseCommandResult(parseOkResponse(response.toString()));
-                    break;
-                case QUESTION:
-                    parseQuestionResult(parseOkResponse(response.toString()));
-                    break;
-                case SUPPORT:
-                    parseSupportResult(parseOkResponse(response.toString()));
-                    break;
-            }
+	/**
+	 * Parse additional OK result.
+	 *
+	 * @param response
+	 */
+	protected void parseCommandResult(String response) {
 
-            status = Status.OK;
-            return true;
-        }
-        if (response.indexOf("ERROR") > 0) {
-            status = Status.ERROR;
-            parseCMS(response);
-            return true;
-        }
-        return false;
-    }
+	}
 
-    protected void parseCMS(StringBuilder response) {
-        Matcher matcher = cmsErrorPattern.matcher(response);
-        if (matcher.matches()) {
-            cmsErrorCode = Integer.parseInt(matcher.group(1));
-        }
-    }
+	protected void parseQuestionResult(String response) {
+		throw new RuntimeException("Not implement");
+	}
 
-    public int getCmsErrorCode() {
-        return cmsErrorCode;
-    }
+	protected void parseSupportResult(String response) {
+		throw new RuntimeException("Not implement");
+	}
 
-    /**
-     * Parse additional OK result.
-     *
-     * @param response
-     */
-    protected void parseCommandResult(String response) {
+	@Override
+	public String getResponse() {
+		// if (status.equals(Status.OK) || status.equals(Status.ERROR)) {
+		return response.toString();
+		// }
+		// throw new RuntimeException("At has no response yed");
+	}
 
-    }
+	public Status getStatus() {
+		return status;
+	}
 
-    protected void parseQuestionResult(String response) {
-        throw new RuntimeException("Not implement");
-    }
+	public boolean isStatus(Status status) {
+		return getStatus().equals(status);
+	}
 
-    protected void parseSupportResult(String response) {
-        throw new RuntimeException("Not implement");
-    }
+	public boolean isStatusOK() {
+		return isStatus(Status.OK);
+	}
 
-    @Override
-    public String getResponse() {
-        // if (status.equals(Status.OK) || status.equals(Status.ERROR)) {
-        return response.toString();
-        //  }
-        //throw new RuntimeException("At has no response yed");
-    }
+	public String getRequest() {
+		switch (mode) {
+		case COMMAND:
+			return getCommandRequest();
+		case QUESTION:
+			return getQuestionRequest();
+		case SUPPORT:
+			return getSupportRequest();
+		}
+		return null;
+	}
 
-    public Status getStatus() {
-        return status;
-    }
+	public String getCommandRequest() {
+		return name + AAT.CR;
+	}
 
-    public boolean isStatus(Status status) {
-        return getStatus().equals(status);
-    }
+	protected String getQuestionRequest() {
+		return name + "?" + AAT.CR;
+	}
 
-    public boolean isStatusOK() {
-        return isStatus(Status.OK);
-    }
+	protected String getSupportRequest() {
+		return name + "=?" + AAT.CR;
+	}
 
-    public String getRequest() {
-        switch (mode) {
-            case COMMAND:
-                return getCommandRequest();
-            case QUESTION:
-                return getQuestionRequest();
-            case SUPPORT:
-                return getSupportRequest();
-        }
-        return null;
-    }
+	protected final String getName() {
+		return name;
+	}
 
-    public String getCommandRequest() {
-        return name + AAT.CR;
-    }
+	public Mode getMode() {
+		return mode;
+	}
 
-    protected String getQuestionRequest() {
-        return name + "?" + AAT.CR;
-    }
+	public String getPrefix() {
+		return "AT";
+	}
 
-    protected String getSupportRequest() {
-        return name + "=?" + AAT.CR;
-    }
+	public static String crrt(String input) {
+		return input.replaceAll("\r", "").replaceAll("\n", "-");
+	}
 
-    protected final String getName() {
-        return name;
-    }
+	public static String deleteCrrt(String input) {
+		return input.replaceAll("\r", "").replaceAll("\n", "");
+	}
 
-    public Mode getMode() {
-        return mode;
-    }
+	public enum Mode {
 
-    public String getPrefix() {
-        return "AT";
-    }
+		COMMAND,
+		QUESTION,
+		SUPPORT;
+	}
 
-    public static String crrt(String input) {
-        return input.replaceAll("\r", "").replaceAll("\n", "-");
-    }
+	public enum Status {
 
-    public static String deleteCrrt(String input) {
-        return input.replaceAll("\r", "").replaceAll("\n", "");
-    }
-
-    public enum Mode {
-
-        COMMAND,
-        QUESTION,
-        SUPPORT;
-    }
-
-    public enum Status {
-
-        READY,
-        WAITING,
-        OK,
-        ERROR;
-    }
+		READY,
+		WAITING,
+		OK,
+		ERROR;
+	}
 
 }

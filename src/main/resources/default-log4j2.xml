@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Configuration status="warn">      
+    <Appenders>  
+        <Console name="STDOUT" target="SYSTEM_OUT">
+            <PatternLayout pattern="%m%n"/> <!-- %d %-5p [%t] %C{2} (%F:%L) -  -->
+        </Console>
+        <File name="FILE_LOG" fileName="jSMS4Pi.log" append="false">
+            <PatternLayout pattern="%d %t %-5p %c{2} - %m%n"/>
+            <!--PatternLayout pattern="%d - %m%n"/>-->
+        </File>
+    </Appenders>
+    <Loggers>      
+        <Root level="all">
+            
+            <AppenderRef ref="FILE_LOG"/>
+        </Root>
+    </Loggers>
+</Configuration>

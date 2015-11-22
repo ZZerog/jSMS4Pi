@@ -32,103 +32,95 @@ import java.util.regex.Pattern;
  */
 public class CREGquestion extends AAT {
 
-    public static String NAME = "+CREG";
-    
-    private final Pattern pattern = Pattern.compile("\\+CREG: *(\\d{1}),(\\d{1,2})");
+	private final Pattern pattern = Pattern.compile("\\+CREG: *(\\d{1}),(\\d{1,2}) *([0-9a-zA-Z]*), *([0-9a-zA-Z])*");
 
-    private int n;
-    private NetworkStatus status;
+	private int n;
+	private NetworkStatus status;
 
-            
-    public enum NetworkStatus {
-        
-        NOT_REGISTERED(0),
-        REGISTERED(1),
-        SEARCHING(2),
-        DENIED(3),
-        UNKNOWN(4),
-        ROAMING(5),
-        SMS_ONLY(6),
-        SMS_ONLY_ROAMING(7),
-        EMERGENCY_ONLY(8),
-        CSFB(9),
-        CSFB_REAMING(10),
-        ;
-        
-        private int code;
-        
-        
-        
-        private NetworkStatus(int code) {
-            this.code = code;
-        }
-        
-        public int getCode() {
-            return code;
-        }
-        
-        public static NetworkStatus valueOf(int code) {
-            switch(code) {
-                case 0 :
-                    return NOT_REGISTERED;
-                case 1 :
-                    return REGISTERED;
-                case 2 :
-                    return SEARCHING;
-                case 3 :
-                    return DENIED;
-                case 4 :
-                    return UNKNOWN;
-                case 5 :
-                    return ROAMING;
-                case 6 :
-                    return SMS_ONLY;
-                case 7 :
-                    return SMS_ONLY_ROAMING;
-                case 8 :
-                    return EMERGENCY_ONLY;
-                case 9 :
-                    return CSFB;
-                case 10 :
-                    return CSFB_REAMING;                    
-            }
-            throw new IllegalArgumentException("Illegal network status code. Accept 0 to 10 including.");
-        }
-        
-        
-    }
+	public enum NetworkStatus {
 
-    
-    public CREGquestion() {
-        super(NAME, Mode.QUESTION);
-    }
+		NOT_REGISTERED(0),
+		REGISTERED(1),
+		SEARCHING(2),
+		DENIED(3),
+		UNKNOWN(4),
+		ROAMING(5),
+		SMS_ONLY(6),
+		SMS_ONLY_ROAMING(7),
+		EMERGENCY_ONLY(8),
+		CSFB(9),
+		CSFB_REAMING(10),;
 
-    /**
-     *
-     */
-    @Override    
-    protected void parseQuestionResult(String response) {
-        Matcher matcher = pattern.matcher(response);
-        if (matcher.find()) {
-            n = Integer.valueOf(matcher.group(1));
-            status = NetworkStatus.valueOf(Integer.parseInt(matcher.group(2)));
-        }
-    }
+		private int code;
 
-    public int getN() {
-        return n;
-    }
+		private NetworkStatus(int code) {
+			this.code = code;
+		}
 
-    public NetworkStatus getNetworkStatus() {
-        return status;
-    }
-    
-    public int getNumberOfStatus() {
-        return status.getCode();
-    }
-    
-    public boolean useSMS() {
-        return status.getCode()==1 || status.getCode()==5 || status.getCode()==6 || status.getCode()==7; 
-    }
+		public int getCode() {
+			return code;
+		}
+
+		public static NetworkStatus valueOf(int code) {
+			switch (code) {
+			case 0:
+				return NOT_REGISTERED;
+			case 1:
+				return REGISTERED;
+			case 2:
+				return SEARCHING;
+			case 3:
+				return DENIED;
+			case 4:
+				return UNKNOWN;
+			case 5:
+				return ROAMING;
+			case 6:
+				return SMS_ONLY;
+			case 7:
+				return SMS_ONLY_ROAMING;
+			case 8:
+				return EMERGENCY_ONLY;
+			case 9:
+				return CSFB;
+			case 10:
+				return CSFB_REAMING;
+			}
+			throw new IllegalArgumentException("Illegal network status code. Accept 0 to 10 including.");
+		}
+
+	}
+
+	public CREGquestion() {
+		super(CREG.NAME, Mode.QUESTION);
+	}
+
+	/**
+	 *
+	 */
+	@Override
+	protected void parseQuestionResult(String response) {
+		Matcher matcher = pattern.matcher(response);
+		if (matcher.find()) {
+			n = Integer.valueOf(matcher.group(1));
+			status = NetworkStatus.valueOf(Integer.parseInt(matcher.group(2)));
+		}
+	}
+
+	public int getN() {
+		return n;
+	}
+
+	public NetworkStatus getNetworkStatus() {
+		return status;
+	}
+
+	public int getNumberOfStatus() {
+		return status.getCode();
+	}
+
+	public boolean useSMS() {
+		return status.getCode() == 1 || status.getCode() == 5 || status.getCode() == 6 || status.getCode() == 7;
+	}
 
 }

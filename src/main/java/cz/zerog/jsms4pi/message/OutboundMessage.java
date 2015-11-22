@@ -28,63 +28,81 @@ package cz.zerog.jsms4pi.message;
  */
 public class OutboundMessage extends Message {
 
-    private Status status = Status.NOT_SEND;
-    
-    private int index;
-    private final String destination;
-    
-    private boolean deliveryReport;
-    private boolean validityPeriod;
-    
-    public OutboundMessage(String text, String destination, boolean deliveryReport) {
-        this(text, destination, deliveryReport, false);
-    }
-    
-    public OutboundMessage(String text, String destination, boolean deliveryReport, boolean validityPeriod) {
-        super(MessageTypes.OUTBOUND, text);
-        this.destination = destination;
-        this.deliveryReport = deliveryReport;
-        this.validityPeriod = validityPeriod;
-    }    
-    
-    public OutboundMessage(String text, String destination) {
-        this(text, destination, false, false);
-    }
-    
-    public enum Status {
-        NOT_SEND_NO_SIGNAL, //cakem na GSM signal
-        NOT_SEND, //sprava nebyla odeslana
-        SENDED_NOT_ACK, // odesla v poradku
-        SENDED_ACK, //odeslana a potvrzena
-        EXPIRED, //vyprsel cas ktery byl stanoven na doruceni
-        ;
-    }
-    
-    public void setIndex(int index) {
-        this.index = index;
-    }
-    
-    public void setStatus(Status status) {
-        this.status = status;
-    }
-    
-    public Status getStatus() {
-        return status;
-    }
-    
-    public int getIndex() {
-        return index;
-    }
+	private Status status = Status.NOT_SEND;
 
-    public boolean isDeliveryReport() {
-        return deliveryReport;
-    }
+	private int index;
+	private final String destination;
 
-    public boolean isValidityPeriod() {
-        return validityPeriod;
-    }
+	private boolean deliveryReport;
+	private boolean validityPeriod;
 
-    public String getDestination() {
-        return destination;
-    }
+	public OutboundMessage(String text, String destination, boolean deliveryReport) {
+		this(text, destination, deliveryReport, false);
+	}
+
+	public OutboundMessage(String text, String destination, boolean deliveryReport, boolean validityPeriod) {
+		super(MessageTypes.OUTBOUND, text);
+		this.destination = destination;
+		this.deliveryReport = deliveryReport;
+		this.validityPeriod = validityPeriod;
+	}
+
+	public OutboundMessage(String text, String destination) {
+		this(text, destination, false, false);
+	}
+
+	public enum Status {
+		/**
+		 * The message wasn't sended. The message is waiting for a GSM signal.
+		 */
+		NOT_SEND_NO_SIGNAL,
+
+		/**
+		 * The default status. The message wasn't sended yet.
+		 */
+		NOT_SEND,
+
+		/**
+		 * The message was sended but without acknoligment.
+		 */
+		SENDED_NOT_ACK,
+
+		/**
+		 * The message was sended and confirmed.
+		 */
+		SENDED_ACK,
+
+		/**
+		 * The message wasn't delivery. A time for delivery expired.
+		 */
+		EXPIRED;
+	}
+
+	public void setIndex(int index) {
+		this.index = index;
+	}
+
+	public void setStatus(Status status) {
+		this.status = status;
+	}
+
+	public Status getStatus() {
+		return status;
+	}
+
+	public int getIndex() {
+		return index;
+	}
+
+	public boolean isDeliveryReport() {
+		return deliveryReport;
+	}
+
+	public boolean isValidityPeriod() {
+		return validityPeriod;
+	}
+
+	public String getDestination() {
+		return destination;
+	}
 }

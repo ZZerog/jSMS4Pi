@@ -21,10 +21,14 @@ package cz.zerog.jsms4pi.at;
  * <http://www.gnu.org/licenses/lgpl-3.0.html>.
  * #L%
  */
-import static cz.zerog.jsms4pi.tool.PatternTool.*;
-import cz.zerog.jsms4pi.exception.AtParseException;
+import static cz.zerog.jsms4pi.tool.PatternTool.NUMBER;
+import static cz.zerog.jsms4pi.tool.PatternTool.WHATEVER;
+import static cz.zerog.jsms4pi.tool.PatternTool.build;
+
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+
+import cz.zerog.jsms4pi.exception.AtParseException;
 
 /**
  * Get Operator Name
@@ -33,46 +37,46 @@ import java.util.regex.Pattern;
  */
 public class COPSquestion extends AAT {
 
-    private int mode;
-    private int format;
-    private String oper;
-    private int act;
-    
-    private static String NAME = "COPS";
+	private int mode;
+	private int format;
+	private String oper;
+	private int act;
 
-    private final Pattern pattern = Pattern.compile(build("\\+COPS: *({}),({}),\"({})\",({})\\s*",NUMBER,NUMBER,WHATEVER,NUMBER));
+	private static String NAME = "COPS";
 
-    public COPSquestion() {
-        super(NAME, Mode.QUESTION);
-    }
+	private final Pattern pattern = Pattern
+			.compile(build("\\+COPS: *({}),({}),\"({})\",({})\\s*", NUMBER, NUMBER, WHATEVER, NUMBER));
 
-    @Override
-    protected void parseQuestionResult(String response) {
-        Matcher matcher = pattern.matcher(response);
-        if (!matcher.matches()) {
-            throwExceptionInMainThread(new AtParseException(response, pattern));
-            return;
-        }
-        mode = Integer.parseInt(matcher.group(1));
-        format = Integer.parseInt(matcher.group(2));
-        oper = matcher.group(3);
-        act = Integer.parseInt(matcher.group(4));
+	public COPSquestion() {
+		super(NAME, Mode.QUESTION);
+	}
 
-    }
+	@Override
+	protected void parseQuestionResult(String response) {
+		Matcher matcher = pattern.matcher(response);
+		if (!matcher.matches()) {
+			throw new AtParseException(response, pattern);
+		}
+		mode = Integer.parseInt(matcher.group(1));
+		format = Integer.parseInt(matcher.group(2));
+		oper = matcher.group(3);
+		act = Integer.parseInt(matcher.group(4));
 
-    public int getMod() {
-        return mode;
-    }
+	}
 
-    public int getFormat() {
-        return format;
-    }
+	public int getMod() {
+		return mode;
+	}
 
-    public String getOperatorName() {
-        return oper;
-    }
+	public int getFormat() {
+		return format;
+	}
 
-    public int getAct() {
-        return act;
-    }
+	public String getOperatorName() {
+		return oper;
+	}
+
+	public int getAct() {
+		return act;
+	}
 }

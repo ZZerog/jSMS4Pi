@@ -1,8 +1,3 @@
-/*
- * To change this license header, choose License Headers in Project Properties.
- * To change this template file, choose Tools | Templates
- * and open the template in the editor.
- */
 package cz.zerog.jsms4pi.at;
 
 /*
@@ -28,23 +23,24 @@ package cz.zerog.jsms4pi.at;
  */
 
 /**
- *
+ * TODO 3gpp 27007
+ * 
  * @author zerog
  */
 public class CUSD extends AAT {
 
-    private final static String NAME = "+CUSD";
-    
-    private int dest;
-    
-    public CUSD(int dest) {
-        super(NAME);
-        this.dest = dest;
-    }
-    
-    @Override
-    public String getCommandRequest() {
-        return getName() + "=1,\"*101#\"," +dest+ AAT.CR;
-    }     
-    
+	private final static String NAME = "+CUSD";
+
+	private int dest;
+
+	public CUSD(int dest) {
+		super(NAME);
+		this.dest = dest;
+	}
+
+	@Override
+	public String getCommandRequest() {
+		return getName() + "=1,\"*101#\"," + dest + AAT.CR;
+	}
+
 }

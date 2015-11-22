@@ -23,17 +23,36 @@ package cz.zerog.jsms4pi;
  */
 
 import cz.zerog.jsms4pi.at.AAT;
-
+import cz.zerog.jsms4pi.exception.GatewayException;
+import cz.zerog.jsms4pi.notification.Notification;
 
 /**
  *
  * @author zerog
  */
-public interface Modem  {
+public interface Modem {
 
-    public void open(String portName) throws Exception;
+	public void open() throws GatewayException;
 
-    public void close() throws Exception;        
-    
-    public <T extends AAT> T send(T at) throws Exception;
+	public void close() throws GatewayException;
+
+	public <T extends AAT> T send(T at) throws GatewayException;
+
+	public int getSpeed();
+
+	public int getAtTimeout();
+
+	public String getPortName();
+
+	public void setGatewayListener(Gateway gateway);
+
+	public void putNotification(Notification notification);
+
+	enum Mode {
+
+		NOT_INIT,
+		NOT_OPEN,
+		READY;
+	}
+
 }

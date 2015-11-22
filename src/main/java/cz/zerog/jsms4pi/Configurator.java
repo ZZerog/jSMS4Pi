@@ -1,5 +1,15 @@
 package cz.zerog.jsms4pi;
 
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.util.Map;
+import java.util.Properties;
+import java.util.Set;
+
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+
 /*
  * #%L
  /*
@@ -24,11 +34,6 @@ package cz.zerog.jsms4pi;
  */
 import cz.zerog.jsms4pi.at.CNMI;
 import cz.zerog.jsms4pi.tool.TypeOfMemory;
-import java.io.IOException;
-import java.io.InputStream;
-import java.util.Properties;
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
 
 /**
  *
@@ -36,100 +41,135 @@ import org.apache.logging.log4j.Logger;
  */
 public class Configurator {
 
-    private final Logger log = LogManager.getLogger();
+	private static final Logger log = LogManager.getLogger();
 
-    private final Properties defaultProperties;
-    private Properties currentProperties;
+	private final Properties defaultProperties;
+	private Properties currentProperties;
 
-    public Configurator() {
-        defaultProperties = getPropeties("modem/default.properties");
-        if (defaultProperties == null) {
-            log.error("Cannot load default properties!");
-        }
-    }
+	public static final String MEMORY_RW = "memory.rw";
+	public static final String MEMORY_STORAGE = "memory.storage";
+	public static final String MEMORY_RECEIVED = "memory.received";
+	public static final String CNMI_MODE = "CNMI.mode";
+	public static final String CNMI_MT = "CNMI.mt";
+	public static final String CNMI_BM = "CNMI.bm";
+	public static final String CNMI_DS = "CNMI.ds";
 
-    void selectModem(ModemInformation modemInfo) {
-        for (String pathName : modemInfo.getNames()) {
-            Properties prop = getPropeties(pathName+".properties");
-            log.info("Try find setting in file '{}' ", pathName);
-            if (prop != null) {
-                log.info("Used '{}' setting", pathName);
-                currentProperties = prop;
-                return;
-            }
-        }
-        log.info("Used default setting");
-        currentProperties = defaultProperties;
-    }
-    
-    
-    public void printAll() {
-        System.out.println(" == Modem setting properties ==");
-        for(String key : currentProperties.stringPropertyNames()) {
-            System.out.println(key+" = "+currentProperties.getProperty(key));
-        }
-        System.out.println("====");
-    }
+	public Configurator() {
+		defaultProperties = getPropeties("modem/default.properties");
+		if (defaultProperties == null) {
+			log.warn("Cannot load default properties!");
+		}
+	}
 
-    /**
-     *
-     *
-     * @return
-     */
-    TypeOfMemory getMemory1RW() {
-        return TypeOfMemory.valueOf(currentProperties.getProperty("memory.rw"));
-    }
+	void selectModem(ModemInformation modemInfo) {
+		for (String pathName : modemInfo.getNames()) {
+			Properties prop = getPropeties(pathName + ".properties");
+			log.info("Try find setting in file '{}' ", pathName);
+			if (prop != null) {
+				log.info("Used '{}' setting", pathName);
+				currentProperties = prop;
+				return;
+			}
+		}
+		log.info("Used default setting");
+		currentProperties = defaultProperties;
+	}
 
-    /**
-     *
-     * @return
-     */
-    TypeOfMemory getMemory2Storage() {
-        return TypeOfMemory.valueOf(currentProperties.getProperty("memory.storage"));
-    }
+	public void printAll() {
+		System.out.println(" == Modem setting properties ==");
+		for (String key : currentProperties.stringPropertyNames()) {
+			System.out.println(key + " = " + currentProperties.getProperty(key));
+		}
+		System.out.println("====");
+	}
 
-    /**
-     *
-     * @return
-     */
-    TypeOfMemory getMemory3Rec() {
-        return TypeOfMemory.valueOf(currentProperties.getProperty("memory.received"));
-    }
+	/**
+	 *
+	 *
+	 * @return
+	 */
+	TypeOfMemory getMemory1RW() {
+		return TypeOfMemory.valueOf(currentProperties.getProperty(MEMORY_RW));
+	}
 
-    /**
-     *
-     * @return
-     */
-    CNMI.Mode getCNMIMode() {
-        return CNMI.Mode.valueOf(Integer.parseInt(currentProperties.getProperty("CNMI.mode")));
-    }
+	/**
+	 *
+	 * @return
+	 */
+	TypeOfMemory getMemory2Storage() {
+		return TypeOfMemory.valueOf(currentProperties.getProperty(MEMORY_STORAGE));
+	}
 
-    CNMI.Mt getCNMIMt() {
-        return CNMI.Mt.valueOf(Integer.parseInt(currentProperties.getProperty("CNMI.mt")));
-    }
+	/**
+	 *
+	 * @return
+	 */
+	TypeOfMemory getMemory3Rec() {
+		return TypeOfMemory.valueOf(currentProperties.getProperty(MEMORY_RECEIVED));
+	}
 
-    CNMI.Bm getCNMIBm() {
-        return CNMI.Bm.valueOf(Integer.parseInt(currentProperties.getProperty("CNMI.bm")));
-    }
+	/**
+	 *
+	 * @return
+	 */
+	CNMI.Mode getCNMIMode() {
+		return CNMI.Mode.valueOf(Integer.parseInt(currentProperties.getProperty(CNMI_MODE)));
+	}
 
-    CNMI.Ds getCNMIDs() {
-        return CNMI.Ds.valueOf(Integer.parseInt(currentProperties.getProperty("CNMI.ds")));
-    }
+	CNMI.Mt getCNMIMt() {
+		return CNMI.Mt.valueOf(Integer.parseInt(currentProperties.getProperty(CNMI_MT)));
+	}
 
-    private Properties getPropeties(String path) {
-        Properties p = null;
-        try {
-            InputStream is = Configurator.class.getClassLoader().getResourceAsStream(path);
-            if (is == null) {
-                return null;
-            }
+	CNMI.Bm getCNMIBm() {
+		return CNMI.Bm.valueOf(Integer.parseInt(currentProperties.getProperty(CNMI_BM)));
+	}
 
-            p = new Properties(defaultProperties);
-            p.load(is);
+	CNMI.Ds getCNMIDs() {
+		return CNMI.Ds.valueOf(Integer.parseInt(currentProperties.getProperty(CNMI_DS)));
+	}
 
-        } catch (IOException ex) {
-            log.warn(ex, ex);
-        }
-        return p;
-    }
+	public static boolean generateFile(ModemInformation modemInfo, Map<String, String> settings) {
+		Properties prop = new Properties();
+
+		Set<Map.Entry<String, String>> entrys = settings.entrySet();
+		for (Map.Entry<String, String> entry : entrys) {
+			prop.setProperty(entry.getKey(), entry.getValue());
+		}
+
+		FileOutputStream out = null;
+		try {
+			out = new FileOutputStream(modemInfo.getManugaturerAndModem() + ".properties");
+			prop.store(out, "Generated by jSMS4Pi for modem " + modemInfo.getManugaturerAndModem());
+		} catch (IOException e) {
+			log.error(e, e);
+			return false;
+		} finally {
+			try {
+				if (out != null) {
+					out.close();
+				}
+			} catch (IOException e) {
+				log.error(e, e);
+			}
+		}
+		return true;
+	}
+
+	private Properties getPropeties(String path) {
+		Properties p = null;
+		try {
+			InputStream is = Configurator.class.getClassLoader().getResourceAsStream(path);
+			if (is == null) {
+				return null;
+			}
+
+			p = new Properties(defaultProperties);
+			p.load(is);
+			is.close();
+
+		} catch (IOException ex) {
+			log.warn(ex, ex);
+		}
+		return p;
+	}
 }

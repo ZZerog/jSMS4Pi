@@ -21,11 +21,13 @@ package cz.zerog.jsms4pi.at;
  * <http://www.gnu.org/licenses/lgpl-3.0.html>.
  * #L%
  */
+import static cz.zerog.jsms4pi.tool.PatternTool.NUMBER;
+import static cz.zerog.jsms4pi.tool.PatternTool.build;
 
-import static cz.zerog.jsms4pi.tool.PatternTool.*;
-import cz.zerog.jsms4pi.exception.AtParseException;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+
+import cz.zerog.jsms4pi.exception.AtParseException;
 
 /**
  * Set mode text or pdu
@@ -34,47 +36,46 @@ import java.util.regex.Pattern;
  */
 public class CMGSText extends AAT {
 
-    private final Pattern indexPattern = Pattern.compile(build("\\s*\\+CMGS: *({})\\s*",NUMBER));
+	private final Pattern indexPattern = Pattern.compile(build("\\s*\\+CMGS: *({})\\s*", NUMBER));
 
-    private final String text;
+	private final String text;
 
-    private int index = -1;
+	private int index = -1;
 
-    /**
-     * Default type is text mode
-     *
-     * @param mode
-     */
-    public CMGSText(String text) {
-        super(""); //empty command name (no prefix)
-        this.text = text + ((char) AAT.CTRLZ);
-    }
+	/**
+	 * Default type is text mode
+	 *
+	 * @param mode
+	 */
+	public CMGSText(String text) {
+		super(""); // empty command name (no prefix)
+		this.text = text + ((char) AAT.CTRLZ);
+	}
 
-    @Override
-    public String getRequest() {
-        return text;
-    }
+	@Override
+	public String getRequest() {
+		return text;
+	}
 
-    @Override
-    public String getPrefix() {
-        return "";
-    }
+	@Override
+	public String getPrefix() {
+		return "";
+	}
 
-    public String getText() {
-        return text;
-    }
+	public String getText() {
+		return text;
+	}
 
-    @Override
-    protected void parseCommandResult(String response) {
-        Matcher matcher = indexPattern.matcher(response);
-        if (!matcher.matches()) {
-            throwExceptionInMainThread(new AtParseException(response, indexPattern));
-            return;
-        }
-        index = Integer.parseInt(matcher.group(1));
-    }
+	@Override
+	protected void parseCommandResult(String response) {
+		Matcher matcher = indexPattern.matcher(response);
+		if (!matcher.matches()) {
+			throw new AtParseException(response, indexPattern);
+		}
+		index = Integer.parseInt(matcher.group(1));
+	}
 
-    public int getIndex() {
-        return index;
-    }
+	public int getIndex() {
+		return index;
+	}
 }
