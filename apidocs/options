@@ -1,5 +1,5 @@
 -classpath
-'/home/zerog/.m2/repository/org/scream3r/jssc/2.8.0/jssc-2.8.0.jar:/home/zerog/.m2/repository/org/apache/logging/log4j/log4j-api/2.0/log4j-api-2.0.jar:/home/zerog/.m2/repository/org/apache/logging/log4j/log4j-core/2.0/log4j-core-2.0.jar'
+'/home/zerog/.m2/repository/org/scream3r/jssc/2.8.0/jssc-2.8.0.jar:/home/zerog/.m2/repository/org/apache/logging/log4j/log4j-api/2.5/log4j-api-2.5.jar:/home/zerog/.m2/repository/org/apache/logging/log4j/log4j-core/2.5/log4j-core-2.5.jar'
 -encoding
 'UTF-8'
 -protected
@@ -7,7 +7,7 @@
 '/home/zerog/work/zerog/git/jSMS4Pi/src/main/java'
 -author
 -bottom
-'Copyright &#169; 2015 jSMS4Pi. All rights reserved.'
+'Copyright &#169; 2015&#x2013;2016 jSMS4Pi. All rights reserved.'
 -charset
 'UTF-8'
 -d
