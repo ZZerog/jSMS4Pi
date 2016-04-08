@@ -2,16 +2,26 @@
             jSMS4Pi - Architecture
             ------
             
-Architecture           
+Architecture
+
+	* <<Service>> 
+
+	Service is a top component. Provides a common service for all Gateway.  It’s a simplest way how use this library. For more see {{{examples.html}Service Examples}}
+
+	* <<Gateway>> 
+
+	Gateway is abstraction for one physical device. For more see source code of Gateway Example on {{{https://github.com/ZZerog/jSMS4Pi/tree/master/src/main/java/cz/zerog/jsms4pi/example/gateway}GitHub}}
+
+	* <<Modem>> 
+
+	Implementation of Modem is depend on a Serial Port Driver. Modem realizes IO operations.
+
+	* <<Events>> 
+
+	Events is a way, how physical device inform a user           
 
 [./images/graph.jpg] 
 
-	* <<Service>> is a top component. Provides a common service for all Gateway.  It’s a simplest way how use this library. For more see Service Example
 
-	* <<Gateway>> is abstraction for one physical device. For more see Gateway Example
-
-	* Implementation of <<Modem>> is depend on a Serial Port Driver. Modem realizes IO operations.
-
-	* <<Events>> is a way, how physical device inform a user
 
 

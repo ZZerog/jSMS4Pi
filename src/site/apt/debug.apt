@@ -1,0 +1,50 @@
+            ------
+            jSMS4Pi - Debugging
+            ------
+            
+Debugging            
+
+	If you have a problem with a Modem and you can see communication between jSMS4Pi and the Modem, you must enable logging. jSMS4Pi use {{{http://logging.apache.org/log4j/2.x/}Log4j 2}}, so the easiest way is to add a log4j2.xml file into the classpath. Sample log4j2.xml on GitHub generated jSMS4Pi.log file similar this: 
+
++-------------------
+2016-04-08 19:39:40,499 main INFO  jsms4pi.SerialModem - Request: AT<R>
+2016-04-08 19:39:40,504 EventThread /dev/ttyUSB3 INFO  jsms4pi.SerialModem - Response: [<R><N>OK<R><N>]
+2016-04-08 19:39:40,504 main INFO  jsms4pi.SerialModem - Request: ATZ<R>
+2016-04-08 19:39:40,518 EventThread /dev/ttyUSB3 INFO  jsms4pi.SerialModem - Response: [<R><N>OK<R><N>]
+2016-04-08 19:39:40,518 main INFO  jsms4pi.SerialModem - Request: ATE0<R>
+2016-04-08 19:39:40,522 EventThread /dev/ttyUSB3 INFO  jsms4pi.SerialModem - Response: [ATE0<R><R><N>OK<R><N>]
+2016-04-08 19:39:40,523 main INFO  jsms4pi.SerialModem - Request: AT+CMGF=1<R>
+2016-04-08 19:39:40,529 EventThread /dev/ttyUSB3 INFO  jsms4pi.SerialModem - Response: [<R><N>OK<R><N>]
+2016-04-08 19:39:40,529 main INFO  jsms4pi.SerialModem - Request: AT+CSMP=49,167,0,0<R>
+2016-04-08 19:39:40,572 EventThread /dev/ttyUSB3 INFO  jsms4pi.SerialModem - Response: [<R><N>OK<R><N>]
+2016-04-08 19:39:40,573 main INFO  jsms4pi.SerialModem - Request: AT+CPMS="ME","ME","ME"<R>
+2016-04-08 19:39:40,578 EventThread /dev/ttyUSB3 INFO  jsms4pi.SerialModem - Response: [<R><N>+CPMS: 0,23,0,23,0,23<R><N><R><N>OK<R><N>]
+2016-04-08 19:39:40,579 main INFO  jsms4pi.SerialModem - Request: AT+CNMI=2,1,0,2<R>
+2016-04-08 19:39:40,583 EventThread /dev/ttyUSB3 INFO  jsms4pi.SerialModem - Response: [<R><N>OK<R><N><R><N>+CMTI: "ME",2<R><N>]
+2016-04-08 19:39:40,584 main INFO  jsms4pi.SerialModem - Request: AT+CSCA="1234",145<R>
+2016-04-08 19:39:40,625 EventThread /dev/ttyUSB3 INFO  jsms4pi.SerialModem - Response: [<R><N>OK<R><N>]
+2016-04-08 19:39:40,625 main INFO  jsms4pi.SerialModem - Request: AT+CMGS="7xxxxxx7"<R>
+2016-04-08 19:39:40,630 EventThread /dev/ttyUSB3 INFO  jsms4pi.SerialModem - Response: [<R><N>> ]
+2016-04-08 19:39:40,630 main INFO  jsms4pi.SerialModem - Request: jSMS4Pi, a simple Java library for sending SMS^Z
+2016-04-08 19:39:42,282 EventThread /dev/ttyUSB3 INFO  jsms4pi.SerialModem - Response: [<R><N><R><N>+CMGS: 201<R><N><R><N>OK<R><N>]
+2016-04-08 19:39:42,459 EventThread /dev/ttyUSB3 INFO  jsms4pi.SerialModem - Detected notification: [+CMTI: "ME",0]
+2016-04-08 19:39:42,460 EventThread /dev/ttyUSB3 INFO  jsms4pi.SerialModem - Added notification +CMTI: "ME",0
+2016-04-08 19:39:42,461 SerialNotifyThread INFO  jsms4pi.SerialModem - Request: AT+CPMS="ME"<R>
+2016-04-08 19:39:42,465 EventThread /dev/ttyUSB3 INFO  jsms4pi.SerialModem - Response: [<R><N>+CPMS: 1,23,1,23,1,23<R><N><R><N>OK<R><N>]
+2016-04-08 19:39:42,465 SerialNotifyThread INFO  jsms4pi.SerialModem - Request: AT+CMGR=0<R>
+2016-04-08 19:39:42,485 EventThread /dev/ttyUSB3 INFO  jsms4pi.SerialModem - Response: [<R><N>+CMGR: "REC UNREAD","+420xxxxxx67",,"16/04/08,19:39:42+08"<R><N>jSMS4Pi, a simple Java library for sending SMS<R><N><R><N>OK<R><N>]
+2016-04-08 19:39:42,486 SerialNotifyThread INFO  jsms4pi.SerialModem - Request: AT+CMGD=0,0<R>
+2016-04-08 19:39:42,501 EventThread /dev/ttyUSB3 INFO  jsms4pi.SerialModem - Response: [<R><N>OK<R><N>]
+2016-04-08 19:39:42,501 SerialNotifyThread INFO  jsms4pi.SerialModem - Request: AT+CPMS="SM"<R>
+2016-04-08 19:39:42,504 EventThread /dev/ttyUSB3 INFO  jsms4pi.SerialModem - Response: [<R><N>+CPMS: 20,20,0,23,0,23<R><N><R><N>OK<R><N>]
+2016-04-08 19:39:42,505 SerialNotifyThread INFO  jsms4pi.SerialModem - new notification --> Gateway
+2016-04-08 19:39:48,286 EventThread /dev/ttyUSB3 INFO  jsms4pi.SerialModem - Detected notification: [+CDSI: "SR",0]
+2016-04-08 19:39:48,286 EventThread /dev/ttyUSB3 INFO  jsms4pi.SerialModem - Added notification +CDSI: "SR",0
+2016-04-08 19:39:48,287 SerialNotifyThread INFO  jsms4pi.SerialModem - Request: AT<R>
+2016-04-08 19:39:48,289 EventThread /dev/ttyUSB3 INFO  jsms4pi.SerialModem - Response: [<R><N>OK<R><N>]
+2016-04-08 19:39:48,290 SerialNotifyThread INFO  jsms4pi.SerialModem - Request: AT+CPMS="SR"<R>
+2016-04-08 19:39:48,299 EventThread /dev/ttyUSB3 INFO  jsms4pi.SerialModem - Response: [<R><N>+CPMS: 0,0,0,23,0,23<R><N><R><N>OK<R><N>]
+2016-04-08 19:39:48,300 SerialNotifyThread INFO  jsms4pi.SerialModem - Request: AT+CMGR=0<R>
+2016-04-08 19:39:48,307 EventThread /dev/ttyUSB3 INFO  jsms4pi.SerialModem - Response: [<R><N>+CMS ERROR: 321<R><N>]
+
++-------------------

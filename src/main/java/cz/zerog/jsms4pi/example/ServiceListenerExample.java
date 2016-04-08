@@ -46,6 +46,8 @@ import cz.zerog.jsms4pi.listener.event.OutboundMessageEvent;
 public class ServiceListenerExample implements InboundCallListener, NetworkStatusListener, GatewayStatusListener,
 		InboundMessageListener, OutboundMessageListener, NetworkCellListener {
 
+	private final static String VERSION = "ServiceListenerExample 1.0";
+
 	public ServiceListenerExample(String port) throws IOException {
 
 		// get service
@@ -113,21 +115,21 @@ public class ServiceListenerExample implements InboundCallListener, NetworkStatu
 	@Override
 	public void outboundMessageEvent(String gatewayName, OutboundMessageEvent event) {
 		switch (event.getStatus()) {
-		case SENDED_ACK:
+		case SENT_ACK:
 			System.out.println("The message was delivered to number: '" + event.getMessage().getDestination() + "'");
 			break;
 		case EXPIRED:
 			System.out.println("The message isn't delivered. Time for delivering expired. Dest. num.: '"
 					+ event.getMessage().getDestination() + "'");
 			break;
-		case NOT_SEND:
-			System.out.println("The message isn't send yet");
+		case NOT_SENT:
+			System.out.println("The message isn't sent yet");
 			break;
-		case NOT_SEND_NO_SIGNAL:
+		case NOT_SENT_NO_SIGNAL:
 			System.out.println("The message is a waiting for a GSM signal");
 			break;
-		case SENDED_NOT_ACK:
-			System.out.println("The message was sended");
+		case SENT_NOT_ACK:
+			System.out.println("The message was sent");
 			break;
 		default:
 			break;
@@ -156,10 +158,16 @@ public class ServiceListenerExample implements InboundCallListener, NetworkStatu
 	 * @throws InterruptedException
 	 */
 	public static void main(String[] args) throws IOException, InterruptedException {
-		String port = Tool.selectionPort(args);
 		Tool.showHelp(args,
-				String.format("Parameters:%n -p <port name> name of a serial port%n -h show this information%n%n"
-						+ "Interactive mode is activated when starting the program without parameters"));
+				String.format("ServiceListenerExample demonstrates how to use the Service class and Listeners.%n%n"
+						+ "Arguments:%n -p <port name>		Name of a serial port%n "
+						+ "-h 			Print Help (this message) and exit%n"
+						+ " -version 		Print version information and exit%n"
+						+ "%n%nInteractive mode is activated when starting the program without parameters"));
+
+		Tool.showVersion(args, VERSION);
+
+		String port = Tool.selectionPort(args);
 
 		System.out.println(String.format("%n--- Summary ---"));
 		System.out.println("Serial port: " + port);

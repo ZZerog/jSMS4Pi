@@ -3,7 +3,6 @@ package cz.zerog.jsms4pi.tool;
 import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.regex.Pattern;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -72,130 +71,171 @@ public class FunctionalTest extends NullGateway {
 
 	private final Logger log = LogManager.getLogger();
 
+	private final static String VERSION = "1.0";
+
 	private Modem modem;
 
 	private ModemInformation modemInfo;
 
 	private String messageText = "jSMS4Pi, a simple Java library for sending SMS";
 
-	/*
-	 * Flags of test. Each test have own flag
-	 */
-	private volatile boolean inboundCall = false;
-	private volatile boolean sendMessMethod1 = false;
-	private volatile boolean sendMessMethod2 = false;
-	private volatile boolean receivedMessMethod1 = false;
-	private volatile boolean receivedMessMethod2 = false;
-	private volatile boolean receivedStatusMethod1 = false;
-	private volatile boolean receivedStatusMethod2 = false;
+	private Thread dotter;
 
-	/*
-	 * Texts
-	 */
-	private final String manufacturerText = "Geting an information about manufacturer of the modem and imei";
-	private final String inboundCallText = "Testing of inbound call detection";
-	private final String sendM1Text = "Sending test text message (a first method)";
-	private final String sendM2Text = "Sending test text message (a second method)";
-	private final String inboundMessageM1Text = "Detecting text message (a first method)";
-	private final String inboundMessageM2Text = "Detecting text message (a second method)";
-	private final String deliveryStatusM1Text = "Testing delivery status detection (a first method)";
-	private final String deliveryStatusM2Text = "Testing delivery status detection(a second method)";
+	private volatile boolean oneCall = false;
 
-	public FunctionalTest(String port, String destination, String service) {
-		System.out.println("Modem testing start\n\n");
+	// info
+	private boolean testInfo = false;
+
+	// call
+	private boolean testInboundCall = false;
+
+	// sms default
+	private boolean testSendDefault = false;
+	private boolean testReceivedDefault = false;
+	private boolean testReceivedStatusDefault = false;
+
+	// sms into TE
+	private boolean testSendTE = false;
+	private boolean testReceivedTE = false;
+	private boolean testReceivedStatusTE = false;
+
+	/**
+	 * Constructor, main part of the program
+	 * 
+	 * @param port
+	 * @param destination
+	 * @param service
+	 */
+	public FunctionalTest(String port, String destination, String service, boolean skipCall, boolean skipSmsIntoTE,
+			boolean skipSmsDefault) {
+
+		/*
+		 * Storage
+		 */
+		try {
+			supportedStorage(port);
+			Thread.sleep(500);
+		} catch (InterruptedException e) {
+			log.error(e, e);
+		} catch (GatewayException e) {
+			log.error(e, e);
+			System.out.println("Port: " + e.getPortName() + ", Error: " + e.getErrorMessage());
+		}
 
 		/*
 		 * Modem Info
 		 */
 		try {
-			modemInfo = printModemInfo(port);
-			if (modemInfo != null) {
-				printResult(manufacturerText, true);
-			} else {
-				printResult(manufacturerText, false);
-			}
-
+			modemInfo = getModemInfo(port);
+			testInfo = modemInfo != null;
 			Thread.sleep(500);
 		} catch (InterruptedException e) {
 			log.error(e, e);
-			printResult(manufacturerText, false);
+			testInfo = false;
 		} catch (GatewayException e) {
-			printResult(manufacturerText, "Port: " + e.getPortName() + ", Error: " + e.getErrorMessage());
+			log.error(e, e);
+			testInfo = false;
+			System.out.println("Port: " + e.getPortName() + ", Error: " + e.getErrorMessage());
 		}
 
 		/*
 		 * Inbound call
 		 */
-		try {
-			printResult(inboundCallText, inboundCall(port));
-			Thread.sleep(500);
-		} catch (IOException | InterruptedException e) {
-			log.error(e, e);
-		} catch (GatewayException e) {
-			log.error(e, e);
-			printResult(inboundCallText, "Port: " + e.getPortName() + ", Error: " + e.getErrorMessage());
+		if (!skipCall) {
+			try {
+				testInboundCall = inboundCall(port);
+				Thread.sleep(500);
+			} catch (IOException | InterruptedException e) {
+				log.error(e, e);
+				testInboundCall = false;
+			} catch (GatewayException e) {
+				log.error(e, e);
+				testInboundCall = false;
+				System.out.println("Port: " + e.getPortName() + ", Error: " + e.getErrorMessage());
+			}
 		}
 
 		/*
 		 * Send, Received and Delivery message default way
 		 */
-		if (false) {
+		if (!skipSmsDefault) {
 			try {
-				if (sendMessageDefault(port, destination, service)) {
 
-					printResult(sendM1Text, true);
+				System.out.print("Send/Received SMS (default method)");
+				log.info("-- SMS default --");
+
+				int timeout = 30;// s
+				dotter = new Thread(new Dotter(timeout));
+				dotter.start();
+
+				if (sendMessageDefault(port, destination, service)) {
+					testSendDefault = true;
 
 					synchronized (this) {
 						try {
-							wait(30 * 1000);
+							wait(timeout * 1000);
 						} catch (InterruptedException e) {
 							System.out.println("Interupted");
 						}
 					}
 				} else {
-					printResult(sendM1Text, false);
-					// Thread.sleep(5 * 1000);
+					testSendDefault = false;
 				}
 
+				dotter.interrupt();
 				Thread.sleep(500);
 			} catch (IOException | InterruptedException e) {
 				log.error(e, e);
 			} catch (GatewayException e) {
 				log.error(e, e);
-				printResult(sendM1Text, "Port: " + e.getPortName() + ", Error: " + e.getErrorMessage());
+				System.out.println("Port: " + e.getPortName() + ", Error: " + e.getErrorMessage());
 			} finally {
+				dotter.interrupt();
+
 				try {
 					modem.close();
-
 				} catch (GatewayException e) {
 					log.error(e, e);
 				}
 			}
+		}
 
-			/*
-			 * Send, Received and Delivery message directly to TE
-			 */
+		/*
+		 * Send, Received and Delivery message directly to TE
+		 */
+		if (!skipSmsIntoTE) {
 			try {
+
+				System.out.print("Send/Received SMS (second method)");
+				log.info("-- SMS second --");
+
+				int timeout = 30;// s
+				dotter = new Thread(new Dotter(timeout));
+				dotter.start();
+
 				if (sendMessageIntoTE(port, destination, service)) {
-					printResult(sendM2Text, true);
+					testSendTE = true;
 
 					synchronized (this) {
 						try {
-							wait(30 * 1000);
+							wait(timeout * 1000);
 						} catch (InterruptedException e) {
 							System.out.println("Interupted");
 						}
 					}
 
 				} else {
-					printResult(sendM2Text, false);
+					testSendTE = false;
 				}
+
 			} catch (IOException e) {
 				log.error(e, e);
 			} catch (GatewayException e) {
 				log.error(e, e);
-				printResult(sendM2Text, "Port: " + e.getPortName() + ", Error: " + e.getErrorMessage());
+				System.out.println("Port: " + e.getPortName() + ", Error: " + e.getErrorMessage());
 			} finally {
+				dotter.interrupt();
+
 				try {
 					modem.close();
 				} catch (GatewayException e) {
@@ -204,28 +244,27 @@ public class FunctionalTest extends NullGateway {
 			}
 		}
 
-		if (!receivedMessMethod1) {
-			printResult(inboundMessageM1Text, false);
-		}
-
-		if (!receivedMessMethod2) {
-			printResult(inboundMessageM2Text, false);
-		}
-
-		if (!receivedStatusMethod1) {
-			printResult(deliveryStatusM1Text, false);
-		}
-
-		if (!receivedStatusMethod2) {
-			printResult(deliveryStatusM2Text, false);
-		}
-
 		/*
-		 * If method2 work well (directly into TE) and method1 not work (saved
-		 * message into storage) generate properties file with setting
+		 * Result
 		 */
-		if (modemInfo != null && (receivedMessMethod2 && receivedStatusMethod2)
-				&& (!receivedMessMethod1 || !receivedStatusMethod1)) {
+		System.out.println(String.format("Result:%n"));
+		printResult("Geting an information about manufacturer of the modem and imei", testInfo);
+
+		if (!skipCall) {
+			printResult("Inbound call detection", testInboundCall);
+		}
+		if (!skipSmsDefault) {
+			printResult("Sending test text message (default method)", testSendDefault);
+			printResult("Detecting inbound text message (default method)", testReceivedDefault);
+			printResult("Testing delivery status detection (default method)", testReceivedStatusDefault);
+		}
+		if (!skipSmsIntoTE) {
+			printResult("Sending test text message (second method)", testSendTE);
+			printResult("Detecting inbound text message (second method)", testReceivedTE);
+			printResult("Testing delivery status detection (second method)", testReceivedStatusTE);
+		}
+
+		if (testSendTE && testReceivedTE && testReceivedStatusTE) {
 
 			Map<String, String> settings = new HashMap<String, String>();
 
@@ -235,15 +274,189 @@ public class FunctionalTest extends NullGateway {
 			settings.put(Configurator.CNMI_BM, "0");
 			settings.put(Configurator.CNMI_DS, "1");
 
-			Configurator.generateFile(modemInfo, settings);
-
+			if (Configurator.generateFile(modemInfo, settings)) {
+				System.out.println(String
+						.format("%nConfiguration file to send/received SMS through second method was generated."));
+				System.out.println("File name: " + modemInfo.getManugaturerAndModem() + ".preperties");
+			}
 		}
 
 		System.out.println("\n\nTest finished");
-
 	}
 
+	/**
+	 * Notification process
+	 */
+	@Override
+	public void notify(Notification notification) {
+		// System.out.println("notification: " +
+		// notification.getClass().getName());
+
+		try {
+			/*
+			 * Incoming call
+			 */
+			if (notification instanceof RING) {
+				RING ring = (RING) notification;
+				printCallInfo(ring.getCallerId());
+				return;
+			}
+			/*
+			 * Incoming call
+			 */
+			if (notification instanceof CLIPN) {
+				CLIPN ring = (CLIPN) notification;
+				printCallInfo(ring.getCallerId());
+				return;
+			}
+			/*
+			 * Delivery status default
+			 */
+			if (notification instanceof CDSI) {
+
+				boolean fail = false;
+
+				try {
+					CDSI cdsi = (CDSI) notification;
+
+					if (!modem.send(new AT()).isStatusOK()) {
+						fail = true;
+					}
+					// change to memory from CDSI notification
+					if (fail || !modem.send(new CPMS(cdsi.getMemoryType())).isStatusOK()) {
+						fail = true;
+					}
+					// read status repord
+					if (fail || !modem.send(new CMGR(CMGR.Mode.SMS_STATUS_REPORT, cdsi.getSMSIndex())).isStatusOK()) {
+						fail = true;
+					}
+					// delete status repord
+					if (fail || !modem.send(new CMGD(cdsi.getSMSIndex())).isStatusOK()) {
+						fail = true;
+					}
+					// change back to main memory
+					if (fail || !modem.send(new CPMS(TypeOfMemory.SM)).isStatusOK()) {
+						fail = true;
+					}
+
+				} catch (Exception e) {
+					log.warn(e, e);
+					fail = true;
+				} finally {
+
+					// stop prints dots
+					try {
+						dotter.interrupt();
+						Thread.sleep(200);
+					} catch (InterruptedException e) {
+					}
+
+					synchronized (this) {
+						notifyAll();
+					}
+
+					testReceivedStatusDefault = !fail;
+				}
+				return;
+			}
+
+			/*
+			 * Delivery status into TE
+			 */
+			if (notification instanceof CDS) {
+				CDS cds = (CDS) notification;
+
+				// stop prints dots
+				try {
+					dotter.interrupt();
+					Thread.sleep(200);
+				} catch (InterruptedException e) {
+				}
+
+				synchronized (this) {
+					notifyAll();
+				}
+
+				testReceivedStatusTE = true;
+
+				return;
+			}
+
+			/*
+			 * Incoming SMS Default
+			 */
+			if (notification instanceof CMTI) {
+
+				boolean fail = false;
+
+				CMTI cmti = (CMTI) notification;
+				CMGR cmgr = new CMGR(CMGR.Mode.SMS_DELIVERY, cmti.getSMSIndex());
+
+				try {
+
+					// change to memory from CMTI notification
+					if (!modem.send(new CPMS(cmti.getMemoryType())).isStatusOK()) {
+						fail = true;
+					}
+					// read sms
+
+					if (fail || !modem.send(cmgr).isStatusOK()) {
+						fail = true;
+					}
+					// delete sms
+					if (fail || !modem.send(new CMGD(cmti.getSMSIndex())).isStatusOK()) {
+						fail = true;
+					}
+					// change back to main memory
+					if (fail || !modem.send(new CPMS(TypeOfMemory.SM)).isStatusOK()) {
+						fail = true;
+					}
+				} catch (Exception e) {
+					log.warn(e, e);
+					fail = true;
+				} finally {
+
+					testReceivedDefault = !fail && messageText.equals(cmgr.getText());
+
+					if (messageText.equals(cmgr.getText())) {
+						return;
+					}
+
+					System.out.println("A malformed or unexpected inbound message ");
+					System.out.println("Text: '" + cmgr.getText() + "', Source tel. number: '" + cmgr.getOa() + "'");
+				}
+				return;
+			}
+
+			/*
+			 * Incoming SMS into TE
+			 */
+			if (notification instanceof CMT) {
+				CMT cmt = (CMT) notification;
+
+				if (testReceivedTE = messageText.equals(cmt.getData())) {
+					return;
+				}
+
+				System.out.println("A malformed or unexception inbound message");
+				System.out.println("Text: '" + cmt.getData() + "', Source tel. number: '" + cmt.getOa() + "'");
+
+				return;
+			}
+
+		} catch (GatewayException | AtParseException e) {
+			log.error(e, e);
+		}
+	}
+
+	/*
+	 * Private methods
+	 */
+
 	private boolean inboundCall(String port) throws GatewayException, IOException {
+
+		log.info("-- Inbound Call --");
+
 		try {
 			if (!modemInit(port, this)) {
 				return false;
@@ -253,34 +466,40 @@ public class FunctionalTest extends NullGateway {
 				return false;
 			}
 
-			System.out.println("Now call the modem.  After dial tone hang up.");
+			System.out.print("Now call the modem.  After dial tone hang up.");
+
+			int timer = 30;// s
+			dotter = new Thread(new Dotter(timer));
+			dotter.start();
 
 			synchronized (this) {
 				try {
-					wait(30 * 1000);
+					wait(timer * 1000);
 				} catch (InterruptedException e) {
 					System.out.println("Interupted");
 				}
 			}
 
-			if (inboundCall) {
+			if (oneCall) {
 				System.out.println("Is this information correct? [y/n]");
 				char c = (char) System.in.read();
-				if (c == 'y') {
+				if (c == 'y' || c == 'Y') {
 					return true;
 				}
 			}
 
 			return false;
 		} finally {
+			dotter.interrupt();
 			modem.close();
 		}
 	}
 
-	private void supportedMemory(String port) throws GatewayException {
+	private void supportedStorage(String port) throws GatewayException {
+
+		log.info("-- Supported Storage --");
 
 		try {
-			System.out.println("Supported storages: ");
 			modemInit(port, new NullGateway());
 			CPMSsupport cpmss = new CPMSsupport();
 			if (modem.send(cpmss).isStatusOK()) {
@@ -288,23 +507,17 @@ public class FunctionalTest extends NullGateway {
 				TypeOfMemory[] mem2 = cpmss.getMemory2();
 				TypeOfMemory[] mem3 = cpmss.getMemory3();
 
-				System.out.print("Memory1: ");
 				for (int i = 0; i < mem1.length; i++) {
-					System.out.print(mem1[i] + ", ");
+					log.info("Memory1: '{}'", mem1[i]);
 				}
-				System.out.println();
 
-				System.out.print("Memory2: ");
 				for (int i = 0; i < mem2.length; i++) {
-					System.out.print(mem2[i] + ", ");
+					log.info("Memory2: '{}'", mem2[i]);
 				}
-				System.out.println();
 
-				System.out.print("Memory3: ");
 				for (int i = 0; i < mem3.length; i++) {
-					System.out.print(mem3[i] + ", ");
+					log.info("Memory3: '{}'", mem3[i]);
 				}
-				System.out.println();
 			}
 
 		} finally {
@@ -313,7 +526,9 @@ public class FunctionalTest extends NullGateway {
 
 	}
 
-	public ModemInformation printModemInfo(String port) throws GatewayException {
+	public ModemInformation getModemInfo(String port) throws GatewayException {
+
+		log.info("-- Modem Info --");
 
 		try {
 
@@ -363,8 +578,6 @@ public class FunctionalTest extends NullGateway {
 	private boolean sendMessageDefault(String port, String modemNumber, String service)
 			throws GatewayException, IOException {
 
-		sendMessMethod1 = true;
-
 		// save delivery into memory
 		return send(port, modemNumber, service, new CNMI(CNMI.Mode._2, CNMI.Mt.NOTIFI_1, CNMI.Bm.NO_CBM_NOTIFI_0,
 				CNMI.Ds.STATUS_REPORT_NOTIFI_IF_STORED_2));
@@ -385,8 +598,6 @@ public class FunctionalTest extends NullGateway {
 	private boolean sendMessageIntoTE(String port, String modemNumber, String service)
 			throws GatewayException, IOException {
 
-		sendMessMethod2 = true;
-
 		// save delivery into memory
 		return send(port, modemNumber, service, new CNMI(CNMI.Mode._1, CNMI.Mt.DIRECT_NOTIFI_BESIDES_CLASS2_2,
 				CNMI.Bm.NO_CBM_NOTIFI_0, CNMI.Ds.STATUS_REPORT_NOTIFI_1));
@@ -397,6 +608,10 @@ public class FunctionalTest extends NullGateway {
 
 		if (!modemInit(port, this)) {
 			return false;
+		}
+
+		if (service == null) {
+			service = "1234";
 		}
 
 		// set text mode
@@ -448,214 +663,128 @@ public class FunctionalTest extends NullGateway {
 		return true;
 	}
 
-	@Override
-	public void notify(Notification notification) {
-		// System.out.println("notification: " +
-		// notification.getClass().getName());
-
-		try {
-			/*
-			 * Incoming call
-			 */
-			if (notification instanceof RING) {
-				RING ring = (RING) notification;
-				printCallInfo(ring.getCallerId());
-				return;
-			}
-			/*
-			 * Incoming call
-			 */
-			if (notification instanceof CLIPN) {
-				CLIPN ring = (CLIPN) notification;
-				printCallInfo(ring.getCallerId());
-				return;
-			}
-			/*
-			 * Delivery status saved into modem memory
-			 */
-			if (notification instanceof CDSI) {
-				CDSI cdsi = (CDSI) notification;
-
-				receivedStatusMethod1 = true;
-
-				boolean fail = false;
-
-				if (!modem.send(new AT()).isStatusOK()) {
-					fail = true;
-				}
-				// change to memory from CDSI notification
-				if (fail || !modem.send(new CPMS(cdsi.getMemoryType())).isStatusOK()) {
-					fail = true;
-				}
-				// read status repord
-				if (fail || !modem.send(new CMGR(CMGR.Mode.SMS_STATUS_REPORT, cdsi.getSMSIndex())).isStatusOK()) {
-					fail = true;
-				}
-				// delete status repord
-				if (fail || !modem.send(new CMGD(cdsi.getSMSIndex())).isStatusOK()) {
-					fail = true;
-				}
-				// change back to main memory
-				if (fail || !modem.send(new CPMS(TypeOfMemory.SM)).isStatusOK()) {
-					fail = true;
-				}
-
-				synchronized (this) {
-					notifyAll();
-				}
-
-				if (fail) {
-					printResult(deliveryStatusM1Text, false);
-					return;
-				}
-				printResult(deliveryStatusM1Text, true);
-
-				return;
-			}
-
-			/*
-			 * Delivery status Routed directly into TE
-			 */
-			if (notification instanceof CDS) {
-				CDS cds = (CDS) notification;
-
-				receivedStatusMethod2 = true;
-
-				synchronized (this) {
-					notifyAll();
-				}
-
-				printResult(deliveryStatusM2Text, true);
-
-				return;
-			}
-
-			/*
-			 * Incoming SMS
-			 */
-			if (notification instanceof CMTI) {
-				CMTI cmti = (CMTI) notification;
-
-				receivedMessMethod1 = true;
-
-				boolean fail = false;
-
-				// change to memory from CMTI notification
-				if (!modem.send(new CPMS(cmti.getMemoryType())).isStatusOK()) {
-					fail = true;
-				}
-				// read sms
-				CMGR cmgr = new CMGR(CMGR.Mode.SMS_DELIVERY, cmti.getSMSIndex());
-				if (fail || !modem.send(cmgr).isStatusOK()) {
-					fail = true;
-				}
-				// delete sms
-				if (fail || !modem.send(new CMGD(cmti.getSMSIndex())).isStatusOK()) {
-					fail = true;
-				}
-				// change back to main memory
-				if (fail || !modem.send(new CPMS(TypeOfMemory.SM)).isStatusOK()) {
-					fail = true;
-				}
-
-				if (fail) {
-					printResult(inboundMessageM1Text, false);
-				}
-
-				if (messageText.equals(cmgr.getText())) {
-					printResult(inboundMessageM1Text, true);
-					return;
-				}
-
-				System.out.println("A malformed or unexpected inbound message ");
-				System.out.println("Text: '" + cmgr.getText() + "', Source tel. number: '" + cmgr.getOa() + "'");
-
-				return;
-			}
-
-			/*
-			 * Incoming SMS Routed directly into TE
-			 */
-			if (notification instanceof CMT) {
-				CMT cmt = (CMT) notification;
-
-				receivedMessMethod2 = true;
-
-				if (messageText.equals(cmt.getData())) {
-					printResult(inboundMessageM2Text, true);
-					return;
-				}
-
-				System.out.println("A malformed or unexception inbound message");
-				System.out.println("Text: '" + cmt.getData() + "', Source tel. number: '" + cmt.getOa() + "'");
-
-				return;
-			}
-
-		} catch (GatewayException | AtParseException e) {
-			log.error(e, e);
-		}
-
-	}
-
 	private void printCallInfo(String tel) throws GatewayException {
 
-		if (inboundCall) {
+		if (oneCall) {
 			return;
 		}
 
-		System.out.println("Detected an inbound call. Caller ID: " + tel);
+		try {
+			dotter.interrupt();
+			Thread.sleep(200);
+		} catch (InterruptedException e) {
+		}
 
-		inboundCall = true;
+		oneCall = true;
+		System.out.println("Detected an inbound call. Caller ID: " + tel);
 
 		synchronized (this) {
 			notifyAll();
 		}
-
-		throw new AtParseException("", Pattern.compile(""));
-	}
-
-	private void printResult(String text, String errorText) {
-		System.out.println(text);
-		System.out.println("  - FAIL, " + errorText);
 	}
 
 	private void printResult(String text, boolean result) {
-		System.out.println(text);
+		System.out.println(" " + text);
 		if (result) {
-			System.out.println("  - OK");
+			System.out.println("   - OK");
 		} else {
-			System.out.println("  - FAIL");
+			System.out.println("   - FAIL");
 		}
 	}
 
+	/**
+	 * Main
+	 * 
+	 * @param args
+	 * @throws IOException
+	 * @throws GatewayException
+	 */
 	public static void main(String[] args) throws IOException, GatewayException {
 		System.out.println(String.format("The program will test if the modem supports required functions%n"
 				+ "   - manufacturing of information%n" + "   - inbound calls detections%n"
-				+ "    - inbound / outbound text messages%n"
+				+ "   - inbound / outbound text messages%n"
 				+ "%nIf the library is missing configuration file for the modem, it will generate it.%n%n" +
 
-		"Warning: This test will try  to send two text messages to itself to  test inbount / outbound messages."));
+		"Warning: This test will try to send two text messages to itself to test inbount / outbound messages.%n%n ---%n"));
 
 		Tool.showHelp(args,
-				String.format("Parameters:%n" + "   - p <port name> Name of a serial port%n" + "   - h To show this%n"
-						+ "   - d <number> Modem / Destination phone number%n"
-						+ "   - s <number> Number of Message Service Center%n" +
+				String.format("Arguments:%n   -p <port name> 	Name of a serial port%n"
+						+ "   -d <number> 		Modem phone number%n"
+						+ "   -s <number> 		Number of Message Service Center (optionally)%n"
+						+ "   --skip-call 		Skip a inbound call test (optionally)%n"
+						+ "   --skip-sms 		Skip send/received sms and delivery report through default method (optionally)%n"
+						+ "   --skip-sms-te 	Skip send/received sms and delivery report through second method (optionally)%n"
+						+ "   -h 			Print Help (this message) and exit%n"
+						+ "   -version 		Print version information and exit%n" +
 
-		"%nInteractive mode is activated when program is started without parameters%n"));
+		"%nInteractive mode is activated when program is started without parameters"));
+
+		Tool.showVersion(args, VERSION);
 
 		String port = Tool.selectionPort(args);
-		String dest = Tool.destNumber(args);
+		String dest = Tool.destNumber(args, "Write the modem phone number: ");
 		String service = Tool.serviceNumer(args);
+
+		boolean skipCall = Tool.skipCall(args);
+		boolean skipSmsIntoTE = Tool.skipSmsTe(args);
+		boolean skipSmsDefault = Tool.skipSms(args);
 
 		System.out.println(String.format("%n--- Summary ---"));
 		System.out.println("Serial port: " + port);
-		System.out.println("Destination (Modem) phone number: " + dest);
-		System.out.println("Number of Message Service Center: " + service);
+		System.out.println("Modem phone number: " + dest);
+
+		if (service != null) {
+			System.out.println("Number of Message Service Center: " + service);
+		}
+
+		System.out.println("");
+
+		if (skipCall) {
+			System.out.println("Skipping inbound call test ");
+		}
+		if (skipSmsIntoTE) {
+			System.out.println("Skipping send/received SMS through second method (direct into TE)");
+		}
+		if (skipSmsDefault) {
+			System.out.println("Skipping send/received SMS default");
+		}
 
 		Tool.pressEnter();
 
 		Tool.activeLoggingToFile();
-		new FunctionalTest(port, dest, service);
+		new FunctionalTest(port, dest, service, skipCall, skipSmsIntoTE, skipSmsDefault);
+	}
+
+	/**
+	 * Printing dot until interrupt or time out.
+	 * 
+	 * @author zerog
+	 *
+	 */
+	private class Dotter implements Runnable {
+
+		private final int second;
+
+		public Dotter(int second) {
+			this.second = second;
+		}
+
+		@Override
+		public void run() {
+			System.out.print(String.format(" [waiting, max " + second + "s]%n"));
+			int i = 0;
+
+			try {
+				while (!interrupted() && i <= second) {
+					System.out.print(" .");
+					Thread.sleep(1000);
+					i++;
+				}
+			} catch (InterruptedException e) {
+				log.info("countdown interrupted");
+				// interrupted
+			}
+			System.out.print(String.format("+%n%n"));
+		}
 	}
 }

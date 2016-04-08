@@ -183,6 +183,10 @@ public abstract class AAT implements ATResponse {
 	}
 
 	public static String crrt(String input) {
+		return input.replaceAll("\r", "<R>").replaceAll("\n", "<N>");
+	}
+
+	public static String dashCrrt(String input) {
 		return input.replaceAll("\r", "").replaceAll("\n", "-");
 	}
 

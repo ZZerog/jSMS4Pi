@@ -92,48 +92,19 @@
         </resources>
         -->
         <plugins>
-            <!--
-            Copy dependecies into lib
-            -->            
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-dependency-plugin</artifactId>
-                <version>2.8</version>
-                <executions>
-                    <execution>
-                        <id>copy-dependencies</id>
-                        <phase>prepare-package</phase>
-                        <goals>
-                            <goal>copy-dependencies</goal>
-                        </goals>
-                        <configuration>
-                            <outputDirectory>${project.build.directory}/lib</outputDirectory>
-                            <overWriteReleases>false</overWriteReleases>
-                            <overWriteSnapshots>false</overWriteSnapshots>
-                            <overWriteIfNewer>true</overWriteIfNewer>
-                        </configuration>
-                    </execution>
-                </executions>
-            </plugin>
-            <!--
-            Create JAR and link libraries
-            -->      
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-jar-plugin</artifactId>
-                <version>2.5</version>
-                <configuration>
-                    <archive>
-                        <manifestEntries>
-                            <Implementation-Version>${project.version}</Implementation-Version>
-                        </manifestEntries>                                    
-                        <manifest>                                    
-                            <classpathPrefix>lib/</classpathPrefix>
-                            <addClasspath>true</addClasspath>                                    
-                        </manifest>
-                    </archive>
-                </configuration>
-            </plugin>  
+			<plugin>
+     			<groupId>org.apache.maven.plugins</groupId>
+     			<artifactId>maven-shade-plugin</artifactId>
+     			<version>1.6</version>
+     				<executions>
+       					<execution>
+         					<phase>package</phase>
+         					<goals>
+           						<goal>shade</goal>
+         					</goals>
+     					</execution>
+     				</executions>
+   			</plugin>
             <!--
             Generates licence header
             -->

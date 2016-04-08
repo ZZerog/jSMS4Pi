@@ -104,7 +104,7 @@ public class SendSMSExample implements OutboundMessageGatewayListener {
 	@Override
 	public void outboundMessageEvent(OutboundMessageEvent event) {
 		switch (event.getStatus()) {
-		case SENDED_ACK:
+		case SENT_ACK:
 			System.out.println("Delivery: " + event.getMessage().getDestination());
 			break;
 		case EXPIRED:
@@ -130,7 +130,7 @@ public class SendSMSExample implements OutboundMessageGatewayListener {
 
 		Tool.showHelp(args,
 				"Parameters:%n -p <port name> name of a serial port%n -h show this information%n"
-						+ "-d <number> destination number%n -s <number> service number -t <text> text of message%n%n"
+						+ "-d <number> destination number%n -s <number> service number%n -t <text> text of message%n%n"
 						+ "Interactive mode is activated when starting the program without parameters");
 
 		String serviceNum = Tool.serviceNumer(args);

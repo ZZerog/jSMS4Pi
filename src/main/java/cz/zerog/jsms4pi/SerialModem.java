@@ -185,7 +185,7 @@ public class SerialModem implements Runnable, Modem, SerialPortEventListener, Th
 
 		cmd.setWaitingStatus();
 		String request = cmd.getPrefix() + cmd.getRequest();
-		log.info("Request: {}", crrt(request));
+		log.info("Request: {}", AAT.crrt(request));
 		try {
 			serialPort.writeString(request);
 			synchronized (cmd) {
@@ -212,7 +212,7 @@ public class SerialModem implements Runnable, Modem, SerialPortEventListener, Th
 		try {
 			while (true) {
 				gateway.notify(notificationQueue.take());
-				log.info("call gateway with notification");
+				log.info("new notification --> Gateway");
 			}
 		} catch (InterruptedException e) {
 			// end of thread
@@ -234,7 +234,7 @@ public class SerialModem implements Runnable, Modem, SerialPortEventListener, Th
 				case AT:
 					synchronized (atResponse) {
 						if (((AAT) atResponse).appendResponse(response)) {
-							log.info("Response: [{}]", crrt(atResponse.getResponse()));
+							log.info("Response: [{}]", AAT.crrt(atResponse.getResponse()));
 							atResponse.notify();
 						}
 					}
@@ -259,11 +259,11 @@ public class SerialModem implements Runnable, Modem, SerialPortEventListener, Th
 								(UnknownNotifications) atResponse);
 
 						if (notification == null) {
-							log.info("Detected unknow notification: [{}]", crrt(notificationMessage));
+							log.info("Detected unknow notification: [{}]", AAT.crrt(notificationMessage));
 							continue;
 						}
 
-						log.info("Detected notification: [{}]", crrt(notification.getResponse()));
+						log.info("Detected notification: [{}]", AAT.crrt(notification.getResponse()));
 						internalQueue.add(notification);
 					}
 
@@ -282,7 +282,7 @@ public class SerialModem implements Runnable, Modem, SerialPortEventListener, Th
 				}
 
 			} catch (Exception ex) {
-				log.error(ex, ex);
+				log.warn(ex, ex);
 			}
 		}
 	}
@@ -354,10 +354,6 @@ public class SerialModem implements Runnable, Modem, SerialPortEventListener, Th
 			return notification;
 		}
 		return null;
-	}
-
-	private String crrt(String input) {
-		return input.replaceAll("\r", "<R>").replaceAll("\n", "<N>");
 	}
 
 	private enum NotifyState {

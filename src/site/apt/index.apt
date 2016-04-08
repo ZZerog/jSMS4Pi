@@ -28,7 +28,7 @@ jSMS4Pi
 
 	jSMS4Pi  should support all modems which use (virtual) serial port (USB 3G modems, real serial port modems, cell phones, etc.). 
 	Exceptions are modems that implement incomplete AT command or do not comply with specifications. The set of tested devices will 
-	be periodically updated. For more information see section: “{{{./modems.html}Supported Modems}}” 
+	be periodically updated. For more information see section: {{{./modems.html}Supported Modems}} 
 	
 * Basic Features
 
@@ -40,6 +40,18 @@ jSMS4Pi
 
 	* Tracking BTS cells
 
+* Contributions
+
+	All types of contributions are welcome. This is a non-commercial project and is written in my free time. If you have a remark, questions, would like to report bugs or anything else, please use {{{http://github.com/ZZerog/jSMS4Pi}GitHub}} or send me an {{{./team-list.html}email}}. 
+
+* News
+
+	*	2016-04-07 :: Content of {{{./tool.html}Tool page}} added
+	
+	*	2016-04-06 :: Huawei - E3372 modem distributed by CZ T-mobile tested {{{./modems.html}Tested Modems}}
+	
+	*	2016-03-20 :: 'USAGE' section added 
+	
 * Releases
 
 	2015-09-05 :: 1.0.0-SNAPSHOT

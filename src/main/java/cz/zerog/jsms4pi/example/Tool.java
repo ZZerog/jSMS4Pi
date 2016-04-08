@@ -54,6 +54,7 @@ public class Tool {
 	private static String DEST_NUMBER = "Write the destination phone number: ";
 	private static String TEXT = "Write a text of the message: ";
 	private static String SERVECE = "Write the SMS service number:";
+	private static String POSTFIX = "%nThis program is a part of jSMS4Pi java library. For more see http://jsms4pi.com%nAutor: Václav Burda%n";
 
 	//
 
@@ -124,7 +125,9 @@ public class Tool {
 
 	private static boolean existParameter(String[] args, String param) {
 		for (int i = 0; i < args.length; i++) {
-			return args[i].equals(param);
+			if (args[i].equals(param)) {
+				return true;
+			}
 		}
 		return false;
 	}
@@ -146,6 +149,17 @@ public class Tool {
 		for (String arg : args) {
 			if (arg.equals("-h") || arg.equals("--h") || arg.equals("-help") || arg.equals("--help")) {
 				System.out.println(helpText);
+				System.out.println(String.format(POSTFIX));
+				System.exit(0);
+				break;
+			}
+		}
+	}
+
+	public static void showVersion(String[] args, String version) {
+		for (String arg : args) {
+			if (arg.equals("-version") || arg.equals("--version")) {
+				System.out.println("Version: " + version);
 				System.exit(0);
 				break;
 			}
@@ -181,12 +195,24 @@ public class Tool {
 	public static String serviceNumer(String[] args) throws IOException {
 		String s = existParameterWithValue(args, "-s");
 
-		if (s == null) {
-			System.out.println(SERVECE);
-			s = sysInput.readLine();
-		}
+		// if (s == null) {
+		// System.out.println(SERVECE);
+		// s = sysInput.readLine();
+		// }
 
 		return s;
+	}
+
+	public static boolean skipCall(String[] args) {
+		return existParameter(args, "--skip-call");
+	}
+
+	public static boolean skipSmsTe(String[] args) {
+		return existParameter(args, "--skip-sms-te");
+	}
+
+	public static boolean skipSms(String[] args) {
+		return existParameter(args, "--skip-sms");
 	}
 
 	public static int[] boudrates(String[] args) throws IOException {

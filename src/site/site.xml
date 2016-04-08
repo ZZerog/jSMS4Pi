@@ -20,11 +20,14 @@
             <item name="Download" href="download.html" />            
             <item name="License" href="license.html"/>            
             <item name="JavaDoc" href="apidocs/index.html"/>
+            <item name="Debugging" href="debug.html"/>
 			<item name="FAQ" href="faq.html"/>            
 			<item name="Autors" href="team-list.html"/>
         </menu>
         <menu name="Usage">
 			<item name="Modem Installation" href="install_modem.html" />
+			<item name="Example" href="examples.html" />
+			<item name="Tool" href="tool.html" />
         </menu>        
         <menu name="Project Development">
             <item name="Project Information" href="project-info.html"/>

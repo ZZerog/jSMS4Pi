@@ -8,23 +8,22 @@
   <part id="general">
     <title>General</title>
 
-    <faq id="supp1">
+    <faq id="unsupported-modem">
       <question>
         I have a modem XZ, is it supported by jSMS4Pi?
       </question>
       <answer>
-        <p>See section “Supported Modems”.</p>
+        <p>See section <a href="./modems.html">Tested Modems</a>.</p>
       </answer>
     </faq>
 
-    <faq id="supp-table">
-      <question>
-        I have a mode XZ and the modem isn’t in the supported modem table. How can I test if my modem will work with jSMS4Pi?
-      </question>
-      <answer>
-        <p>See sectionX “Examples”, FunctionalTest example.</p>
-      </answer>
-    </faq>
+    
+    <faq id="IOException">
+		<question>jSMS4Pi throws java.io.IOException: Permission denied</question>
+		<answer>You don’t have a permission to read/write into the serial port. Use “sudo” or root user  or add group "dialout" to your a linux user. Dialout group have permission read/write to the serial port (Debian). 
+		</answer>
+	</faq>
+    
   </part>
 
  

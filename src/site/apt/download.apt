@@ -4,12 +4,12 @@
             
 Download
 
-	jSMS4Pi java library is still under development so maven download is not available.
+	jSMS4Pi java library is still under development so Maven download is not available.
 
 	* source code
 	
 	jSMS4Pi is hosted on the GitHub.com: {{http://github.com/ZZerog/jSMS4Pi}} 
 	
-	* direct download
+	* direct download (uber-jar)
 	
 	{{./jSMS4Pi-1.0-SNAPSHOT.jar}}

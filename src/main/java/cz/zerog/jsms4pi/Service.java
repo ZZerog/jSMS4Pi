@@ -24,6 +24,7 @@ package cz.zerog.jsms4pi;
 
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 
@@ -129,11 +130,21 @@ public final class Service implements Runnable {
 		}
 	}
 
-	public void getGateway(String name) {
-		gateways.get(name);
+	public Gateway getGateway(String name) {
+		return gateways.get(name);
+	}
+
+	public void setSmsService(String serviceNumber, String name) {
+		Gateway g = gateways.get(name);
+		try {
+			g.setSmsServiceAddress(serviceNumber);
+		} catch (GatewayException e) {
+			log.warn(e, e);
+		}
 	}
 
 	public void sendMessage(OutboundMessage message) {
+		log.info("send message to {}", message.getDestination());
 		waitingMessage.add(message);
 		serviceThread.interrupt();
 	}
@@ -179,13 +190,16 @@ public final class Service implements Runnable {
 		while (true) {
 			try {
 				if (waitingMessage.size() > 0) {
-					nextMessage: for (OutboundMessage message : waitingMessage) {
+					for (Iterator<OutboundMessage> it = waitingMessage.iterator(); it.hasNext();) {
+
+						OutboundMessage message = it.next();
+
 						for (Gateway g : gateways.values()) {
 							try {
 								if (g.isReadyToSend()) {
 									g.sendMessage(message);
-									waitingMessage.remove(message);
-									continue nextMessage;
+									it.remove(); // remove(message)
+									break;
 								}
 							} catch (GatewayException e) {
 								g.close();
@@ -207,7 +221,7 @@ public final class Service implements Runnable {
 				Thread.sleep(TIMER);
 
 			} catch (InterruptedException e) {
-
+				log.info("interrupted");
 			} catch (Exception e) {
 				log.warn(e, e);
 			}

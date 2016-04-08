@@ -106,7 +106,7 @@ public class SendAndReceiveSMSExample implements OutboundMessageGatewayListener,
 	@Override
 	public void outboundMessageEvent(OutboundMessageEvent event) {
 		switch (event.getStatus()) {
-		case SENDED_ACK:
+		case SENT_ACK:
 			System.out.println("The message was delivered to number : " + event.getMessage().getDestination());
 			break;
 		case EXPIRED:

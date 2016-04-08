@@ -25,6 +25,7 @@ package cz.zerog.jsms4pi.exception;
 public enum CmsError {
 
 	CME_0(0, "Phone failure"),
+	CME_321(321, "Invalid memory index"),
 	CME_500(500, "Unknown error");
 
 	private final int number;

@@ -64,7 +64,7 @@ public class Configurator {
 	void selectModem(ModemInformation modemInfo) {
 		for (String pathName : modemInfo.getNames()) {
 			Properties prop = getPropeties(pathName + ".properties");
-			log.info("Try find setting in file '{}' ", pathName);
+			log.info("Searching: '{}.propeties' ", pathName);
 			if (prop != null) {
 				log.info("Used '{}' setting", pathName);
 				currentProperties = prop;
@@ -158,6 +158,7 @@ public class Configurator {
 	private Properties getPropeties(String path) {
 		Properties p = null;
 		try {
+			// absolute path
 			InputStream is = Configurator.class.getClassLoader().getResourceAsStream(path);
 			if (is == null) {
 				return null;

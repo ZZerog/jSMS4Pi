@@ -36,7 +36,7 @@ public class ModemInformation {
 	private String model;
 	private String imei;
 
-	private List<String> info = new ArrayList();
+	private List<String> info = new ArrayList<>();
 
 	public Iterable<String> getNames() {
 

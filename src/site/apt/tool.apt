@@ -1,0 +1,44 @@
+            ------
+            jSMS4Pi - Tool
+            ------
+            
+Tool
+
+* FunctionalTest
+
+	Is way of checking if the jSMS4Pi library supports your modem, if your modem is not in the {{{./modems.html}Tested Modems}} table. The test will try to send and receive a text message and will also test if the modem is supporting an incoming call. The FunctionalTest will generate two reports: full log (jSMS4pi.log) and config.properties file (if necessary). If the test generated the configuration file, copy it into your applications classpath. When the jSMS4Pi library wants to setup the modem, it will search a config file named by manufacturer and model name. If no file in classpath will match the default configuration is used.
+
+	The Configuration files are found in this order:
+	
+		* IMEI
+	
+		* Manufaturer_Model
+	
+		* Manufaturer
+
+
+	Please support this project. If your modem is not in the {{{./modems.html}Tested Modems}} table, please send reports to {{{team-list.html}author email}}. Table will be updated. Thank you            
+	
+	To run: 
+
++---------------------
+FuncionalTest.sh
++---------------------
+
+	if you have jSMS4Pi-<version>.jar in some directory, or
+	
++---------------------
+java -cp ".:jSMS4Pi-<version>.jar" cz.zerog.jsms4pi.tool.FunctionalTest
++---------------------	
+
+	For help use -h, --help argument
+	
++---------------------
+FuncionalTest.sh -h
++---------------------
+
+	or
+	
++---------------------
+java -cp ".:jSMS4Pi-<version>.jar" cz.zerog.jsms4pi.tool.FunctionalTest -h
++---------------------		 

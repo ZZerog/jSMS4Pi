@@ -34,7 +34,10 @@ import cz.zerog.jsms4pi.message.OutboundMessage;
  */
 public class ServiceSendMessageExample {
 
-	public ServiceSendMessageExample(String port, String destination, String text) throws IOException {
+	private final static String VERSION = "ServiceSendMessageExample 1.0";
+
+	public ServiceSendMessageExample(String port, String destination, String text)
+			throws IOException, InterruptedException {
 
 		// create new text message
 		OutboundMessage message = new OutboundMessage(text, destination);
@@ -45,6 +48,10 @@ public class ServiceSendMessageExample {
 		// add a gateway into service, named 'fooGateway'
 		service.addDefaultGateway(port, "fooGateway");
 
+		// time out 1s
+		Thread.sleep(1000);
+
+		// send
 		service.sendMessage(message);
 
 		// only pause a main thread until a key press
@@ -68,8 +75,14 @@ public class ServiceSendMessageExample {
 	 */
 	public static void main(String[] args) throws IOException, InterruptedException {
 		Tool.showHelp(args,
-				String.format("Parameters:%n -p <port name> name of a serial port%n -h show this information%n%n"
-						+ "Interactive mode is activated when starting the program without parameters"));
+				String.format("ServiceSendMessageExample explains how to easily send a text message%n%n"
+						+ "Arguments:%n -p <port name>	Name of a serial port (path)%n -d <number>	Destination phone number%n"
+						+ " -t <text>	Text of message%n"
+						+ " -s <number>	Number of Message Service Center (optionally)%n -h		Print Help (this message) and exit%n"
+						+ " -version 	Print version information and exit%n"
+						+ "%n%nInteractive mode is activated when starting the program without parameters"));
+
+		Tool.showVersion(args, VERSION);
 
 		String port = Tool.selectionPort(args);
 		String destination = Tool.destNumber(args);

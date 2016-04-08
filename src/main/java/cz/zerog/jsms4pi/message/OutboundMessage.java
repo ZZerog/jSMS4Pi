@@ -28,7 +28,7 @@ package cz.zerog.jsms4pi.message;
  */
 public class OutboundMessage extends Message {
 
-	private Status status = Status.NOT_SEND;
+	private Status status = Status.NOT_SENT;
 
 	private int index;
 	private final String destination;
@@ -47,33 +47,42 @@ public class OutboundMessage extends Message {
 		this.validityPeriod = validityPeriod;
 	}
 
+	/**
+	 * Create new outbound text message.
+	 * 
+	 * @param text
+	 *            text of messsage
+	 * @param destination
+	 *            destination phone number.
+	 */
 	public OutboundMessage(String text, String destination) {
 		this(text, destination, false, false);
 	}
 
 	public enum Status {
 		/**
-		 * The message wasn't sended. The message is waiting for a GSM signal.
+		 * The message wasn't sent. The message is waiting for a GSM signal.
 		 */
-		NOT_SEND_NO_SIGNAL,
+		NOT_SENT_NO_SIGNAL,
 
 		/**
-		 * The default status. The message wasn't sended yet.
+		 * The default status. The message wasn't sent yet.
 		 */
-		NOT_SEND,
+		NOT_SENT,
 
 		/**
-		 * The message was sended but without acknoligment.
+		 * The message was sent but without delivery receipt.
 		 */
-		SENDED_NOT_ACK,
+		SENT_NOT_ACK,
 
 		/**
-		 * The message was sended and confirmed.
+		 * The message was sent with delivery receipt.
 		 */
-		SENDED_ACK,
+		SENT_ACK,
 
 		/**
-		 * The message wasn't delivery. A time for delivery expired.
+		 * The message wasn't delivered because the time for delivery has
+		 * expired.
 		 */
 		EXPIRED;
 	}

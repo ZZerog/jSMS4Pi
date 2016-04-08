@@ -47,7 +47,7 @@ public class CPINquestion extends AAT {
 	@Override
 	protected void parseQuestionResult(String response) {
 		Matcher matcher = pattern.matcher(response);
-		if (!matcher.matches()) {
+		if (!matcher.find()) {
 			throw new AtParseException(response, pattern);
 		}
 

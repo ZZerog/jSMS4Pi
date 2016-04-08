@@ -152,17 +152,50 @@ public class ATGateway implements Gateway {
 		this.modem = modem;
 	}
 
+	/**
+	 * Create a new instance of Gateway by serial port.
+	 * 
+	 * RS232 setup: 8N1, time out of response: 30s, boud rate speed: 57600
+	 * 
+	 * @param serialPortName
+	 * @return
+	 */
 	public static Gateway getDefaultFactory(String serialPortName) {
 		return getDefaultFactory(serialPortName, BOUDRATE);
 	}
 
+	/**
+	 * Create a new instance of Gateway by serial port.
+	 * 
+	 * RS232 setup: 8N1, Time out of response: 30s
+	 * 
+	 * @param portname
+	 *            serial port
+	 * @param boudrate
+	 *            boud rate speed of modem
+	 * @return new Gateway
+	 */
 	public static Gateway getDefaultFactory(String portname, int boudrate) {
 		return getDefaultFactory(portname, boudrate, DATA_BIT, STOP_BIT, PARITY, AT_RESPONSE_TO);
 	}
 
-	public static Gateway getDefaultFactory(String portname, int serialSpeed, int databit, int stopbit, int parity,
+	/**
+	 * Create a new instance of Gateway by serial port.
+	 * 
+	 * @param portname
+	 *            serial port
+	 * @param boudrate
+	 *            boud rate speed of modem
+	 * @param databit
+	 * @param stopbit
+	 * @param parity
+	 * @param atTimeOut
+	 *            time out of response
+	 * @return new Gateway
+	 */
+	public static Gateway getDefaultFactory(String portname, int boudrate, int databit, int stopbit, int parity,
 			int atTimeOut) {
-		Modem modem = new SerialModem(portname, serialSpeed, databit, stopbit, parity, atTimeOut);
+		Modem modem = new SerialModem(portname, boudrate, databit, stopbit, parity, atTimeOut);
 		Gateway gateway = new ATGateway(modem);
 		modem.setGatewayListener(gateway);
 		return gateway;
@@ -223,7 +256,7 @@ public class ATGateway implements Gateway {
 		}
 
 		// enable CMS error message
-		modem.send(new CMEE(CMEE.Status.DISABLE));
+		modem.send(new CMEE(CMEE.Status.ENABLE_NUMERIC));
 
 		// set sms service address
 		if (smsServiceAddress == null) {
@@ -524,7 +557,7 @@ public class ATGateway implements Gateway {
 		}
 
 		message.setIndex(cmgstext.getIndex());
-		message.setStatus(OutboundMessage.Status.SENDED_NOT_ACK);
+		message.setStatus(OutboundMessage.Status.SENT_NOT_ACK);
 		modem.putNotification(new OutboundMessageNotification(message));
 		outgoingList.add(message);
 
@@ -556,7 +589,7 @@ public class ATGateway implements Gateway {
 
 				switch (messStatus) {
 				case RECEIVED: // 0
-					outMess.setStatus(OutboundMessage.Status.SENDED_ACK);
+					outMess.setStatus(OutboundMessage.Status.SENT_ACK);
 					outgoingList.remove(outMess);
 					createOutboundEvent(outMess);
 					break;
