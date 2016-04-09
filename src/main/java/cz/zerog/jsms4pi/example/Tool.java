@@ -68,11 +68,7 @@ public final class Tool {
 			return portNames[0];
 		}
 
-		int a = 0;
-
 		do {
-
-			a++;
 			System.out.println(SELECT_PORT_TITLE);
 
 			int i = 1;
@@ -95,8 +91,7 @@ public final class Tool {
 				// nothing
 			}
 
-		} while (a < 1);
-		return null;
+		} while (true);
 	}
 
 	public static void pressEnter() throws IOException {
