@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta name="viewport" content="initial-scale=1.0, user-scalable=no">
+    <meta charset="utf-8">
+    <title>Simple Polylines</title>
+    <style>
+      html, body {
+        height: 100%;
+        margin: 0;
+        padding: 0;
+      }
+      #map {
+        height: 100%;
+      }
+    </style>
+  </head>
+  <body>
+    <div id="map"></div>
+    <script>
+
+// This example creates a 2-pixel-wide red polyline showing the path of William
+// Kingsford Smith's first trans-Pacific flight between Oakland, CA, and
+// Brisbane, Australia.
+
+function initMap() {
+  var map = new google.maps.Map(document.getElementById('map'), {
+    zoom: 9,
+    center: {lat: 49.642344444444, lng: 17.143561111111},
+    mapTypeId: google.maps.MapTypeId.ROADMAP
+  });
+
+  var flightPlanCoordinates = [
+{lat: 49.290055555556, lng: 17.009166666667},
+{lat: 49.321566666667, lng: 17.038091666667},
+{lat: 49.321566666667, lng: 17.038091666667},
+{lat: 49.321566666667, lng: 17.038091666667},
+{lat: 49.350547222222, lng: 17.070561111111},
+{lat: 49.385011111111, lng: 17.121411111111},
+{lat: 49.385011111111, lng: 17.121411111111},
+{lat: 49.430794444444, lng: 17.087552777778},
+{lat: 49.430794444444, lng: 17.087552777778},
+{lat: 49.467122222222, lng: 17.123386111111},
+{lat: 49.579497222222, lng: 17.230847222222},
+{lat: 49.475983333333, lng: 17.133455555556},
+{lat: 49.475983333333, lng: 17.133455555556},
+{lat: 49.512591666667, lng: 17.192572222222},
+{lat: 49.532827777778, lng: 17.157569444444},
+{lat: 49.554147222222, lng: 17.143422222222},
+{lat: 49.532827777778, lng: 17.157569444444},
+{lat: 49.554147222222, lng: 17.143422222222},
+{lat: 49.577147222222, lng: 17.236219444444},
+{lat: 49.587741666667, lng: 17.228858333333},
+{lat: 49.577147222222, lng: 17.236219444444},
+{lat: 49.587741666667, lng: 17.228858333333},
+{lat: 49.598383333333, lng: 17.223963888889},
+{lat: 49.579497222222, lng: 17.230847222222},
+{lat: 49.587741666667, lng: 17.228858333333},
+{lat: 49.598383333333, lng: 17.223963888889},
+{lat: 49.598383333333, lng: 17.223963888889},
+{lat: 49.642344444444, lng: 17.143561111111},
+{lat: 49.6408, lng: 17.211566666667},
+{lat: 49.6408, lng: 17.211566666667},
+{lat: 49.642344444444, lng: 17.143561111111},
+{lat: 49.615769444444, lng: 17.079605555556},
+{lat: 49.693516666667, lng: 17.068188888889},
+{lat: 49.691705555556, lng: 17.076325},
+{lat: 49.692788888889, lng: 17.066841666667},
+{lat: 49.691705555556, lng: 17.076325},
+{lat: 49.692788888889, lng: 17.066841666667},
+{lat: 49.691705555556, lng: 17.076325},
+{lat: 49.692788888889, lng: 17.066841666667},
+{lat: 49.692788888889, lng: 17.066841666667},
+{lat: 49.693516666667, lng: 17.068188888889},
+{lat: 49.758163888889, lng: 16.917425},
+{lat: 49.806333333333, lng: 17.035980555556},
+{lat: 49.759419444444, lng: 16.9567},
+{lat: 49.758163888889, lng: 16.917425},
+{lat: 49.759419444444, lng: 16.9567},
+{lat: 49.758163888889, lng: 16.917425},
+{lat: 49.759419444444, lng: 16.9567},
+{lat: 49.758163888889, lng: 16.917425},
+{lat: 49.778052777778, lng: 16.923072222222},
+{lat: 49.778052777778, lng: 16.923072222222},
+{lat: 49.778052777778, lng: 16.923072222222},
+{lat: 49.850052777778, lng: 16.902458333333},
+{lat: 49.778052777778, lng: 16.923072222222},
+{lat: 49.779736111111, lng: 16.860794444444},
+{lat: 49.850052777778, lng: 16.902458333333},
+{lat: 49.880241666667, lng: 16.880666666667},
+{lat: 49.880241666667, lng: 16.880666666667},
+{lat: 49.880241666667, lng: 16.880666666667},
+{lat: 49.880241666667, lng: 16.880666666667},
+{lat: 49.880241666667, lng: 16.880666666667},
+{lat: 49.880241666667, lng: 16.880666666667},
+{lat: 49.880241666667, lng: 16.880666666667},
+{lat: 49.880241666667, lng: 16.880666666667},
+{lat: 49.880241666667, lng: 16.880666666667},
+{lat: 49.880241666667, lng: 16.880666666667},
+{lat: 49.880241666667, lng: 16.880666666667},
+{lat: 49.880241666667, lng: 16.880666666667},
+{lat: 49.880241666667, lng: 16.880666666667},
+{lat: 49.880241666667, lng: 16.880666666667},
+{lat: 49.880241666667, lng: 16.880666666667},
+{lat: 49.880241666667, lng: 16.880666666667},
+{lat: 49.940102777778, lng: 16.873758333333}  
+];
+  var flightPath = new google.maps.Polyline({
+    path: flightPlanCoordinates,
+    geodesic: true,
+    strokeColor: '#33cc33',
+    strokeOpacity: 0.5,
+    strokeWeight: 5
+  });
+
+  flightPath.setMap(map);
+
+  var image = 'dot.png';
+
+ for (i = 0; i < flightPlanCoordinates.length; i++) {  
+  var beachMarker = new google.maps.Marker({
+    position: flightPlanCoordinates[i],
+    map: map,
+    icon: image
+  });
+ }
+
+}
+
+    </script>
+    <script async defer
+        src="https://maps.googleapis.com/maps/api/js?key=AIzaSyAx5RIUXSDWOqjW3nBvfv9SzKQgV9mS-cA&signed_in=true&callback=initMap"></script>
+  </body>
+</html>
