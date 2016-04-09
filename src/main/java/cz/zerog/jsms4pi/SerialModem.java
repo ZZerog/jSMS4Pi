@@ -45,6 +45,7 @@ import jssc.SerialPort;
 import jssc.SerialPortEvent;
 import jssc.SerialPortEventListener;
 import jssc.SerialPortException;
+import jssc.SerialPortList;
 
 /**
  *
@@ -321,6 +322,10 @@ public class SerialModem implements Runnable, Modem, SerialPortEventListener, Th
 		} catch (InterruptedException e) {
 			log.error(e, e);
 		}
+	}
+
+	public static String[] getAvailablePorts() {
+		return SerialPortList.getPortNames();
 	}
 
 	private Notification findNotification(String notificationMessage, UnknownNotifications notifications) {

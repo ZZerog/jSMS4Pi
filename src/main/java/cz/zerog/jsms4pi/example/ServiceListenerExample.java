@@ -2,6 +2,8 @@ package cz.zerog.jsms4pi.example;
 
 import java.io.IOException;
 
+import cz.zerog.jsms4pi.SerialModem;
+
 /*
  * #%L
  * jSMS4Pi
@@ -167,7 +169,7 @@ public class ServiceListenerExample implements InboundCallListener, NetworkStatu
 
 		Tool.showVersion(args, VERSION);
 
-		String port = Tool.selectionPort(args);
+		String port = Tool.selectionPort(args, SerialModem.getAvailablePorts());
 
 		System.out.println(String.format("%n--- Summary ---"));
 		System.out.println("Serial port: " + port);

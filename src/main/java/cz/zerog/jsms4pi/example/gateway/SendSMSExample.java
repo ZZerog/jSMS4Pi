@@ -25,6 +25,7 @@ import java.io.IOException;
  */
 import cz.zerog.jsms4pi.ATGateway;
 import cz.zerog.jsms4pi.Gateway;
+import cz.zerog.jsms4pi.SerialModem;
 import cz.zerog.jsms4pi.example.Tool;
 import cz.zerog.jsms4pi.exception.GatewayException;
 import cz.zerog.jsms4pi.listener.event.OutboundMessageEvent;
@@ -134,7 +135,7 @@ public class SendSMSExample implements OutboundMessageGatewayListener {
 						+ "Interactive mode is activated when starting the program without parameters");
 
 		String serviceNum = Tool.serviceNumer(args);
-		String port = Tool.selectionPort(args);
+		String port = Tool.selectionPort(args, SerialModem.getAvailablePorts());
 		String number = Tool.destNumber(args);
 		String text = Tool.text(args);
 

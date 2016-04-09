@@ -721,7 +721,7 @@ public class FunctionalTest extends NullGateway {
 
 		Tool.showVersion(args, VERSION);
 
-		String port = Tool.selectionPort(args);
+		String port = Tool.selectionPort(args, SerialModem.getAvailablePorts());
 		String dest = Tool.destNumber(args, "Write the modem phone number: ");
 		String service = Tool.serviceNumer(args);
 

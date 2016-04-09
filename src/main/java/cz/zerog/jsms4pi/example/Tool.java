@@ -34,17 +34,16 @@ import org.apache.logging.log4j.core.config.builder.api.ConfigurationBuilder;
 import org.apache.logging.log4j.core.config.builder.api.ConfigurationBuilderFactory;
 import org.apache.logging.log4j.core.config.builder.impl.BuiltConfiguration;
 
-import jssc.SerialPortList;
-
 /**
- *
+ * Tool Class Library
+ * 
  * @author zerog
  */
-public class Tool {
+public final class Tool {
 
-	public static String ln = System.getProperty("line.separator");
-	private static BufferedReader sysInput = new BufferedReader(new InputStreamReader(System.in));
-
+	/*
+	 * Texts constants
+	 */
 	private static String NO_SERIAL = "No serial port available or you do not have a permission";
 	private static String SELECT_PORT_TITLE = "Select a serial port:";
 	private static String SELECT_PORT = "Select a port name [1-%d]: ";
@@ -53,17 +52,12 @@ public class Tool {
 	private static String PRESS_ENTER = "%nPress enter to %s";
 	private static String DEST_NUMBER = "Write the destination phone number: ";
 	private static String TEXT = "Write a text of the message: ";
-	private static String SERVECE = "Write the SMS service number:";
 	private static String POSTFIX = "%nThis program is a part of jSMS4Pi java library. For more see http://jsms4pi.com%nAutor: Václav Burda%n";
 
-	//
-
-	public static void arguments() {
-
+	private Tool() {
 	}
 
-	public static String selectionPort() throws IOException {
-		String[] portNames = SerialPortList.getPortNames();
+	public static String iteractiveSelectionPort(String[] portNames) throws IOException {
 
 		if (portNames.length == 0) {
 			System.out.println(NO_SERIAL);
@@ -74,8 +68,11 @@ public class Tool {
 			return portNames[0];
 		}
 
+		int a = 0;
+
 		do {
 
+			a++;
 			System.out.println(SELECT_PORT_TITLE);
 
 			int i = 1;
@@ -83,10 +80,11 @@ public class Tool {
 				System.out.println(i + " - " + portNames[i - 1]);
 			}
 
-			// System.out.print("Select port name [1-" + (i - 1) + "]: ");
 			System.out.println(String.format(SELECT_PORT, i - 1));
 
-			String line = sysInput.readLine();
+			String line = getSystemIn().readLine();
+
+			System.out.println(line);
 
 			try {
 				int num = Integer.parseInt(line);
@@ -97,8 +95,8 @@ public class Tool {
 				// nothing
 			}
 
-		} while (true);
-
+		} while (a < 1);
+		return null;
 	}
 
 	public static void pressEnter() throws IOException {
@@ -111,36 +109,18 @@ public class Tool {
 
 	public static void pressEnterTo(String reason) throws IOException {
 		System.out.println(String.format(PRESS_ENTER, reason));
-		sysInput.readLine();
-	}
-
-	private static String existParameterWithValue(String[] args, String param) {
-		for (int i = 0; i < args.length; i++) {
-			if (args[i].equals(param) && i + 1 < args.length) {
-				return args[i + 1];
-			}
-		}
-		return null;
-	}
-
-	private static boolean existParameter(String[] args, String param) {
-		for (int i = 0; i < args.length; i++) {
-			if (args[i].equals(param)) {
-				return true;
-			}
-		}
-		return false;
+		getSystemIn().readLine();
 	}
 
 	public static String portOrNull(String[] args) {
 		return existParameterWithValue(args, "-p");
 	}
 
-	public static String selectionPort(String[] args) throws IOException {
+	public static String selectionPort(String[] args, String[] portNames) throws IOException {
 		String port = existParameterWithValue(args, "-p");
 
 		if (port == null) {
-			port = selectionPort();
+			port = iteractiveSelectionPort(portNames);
 		}
 		return port;
 	}
@@ -171,7 +151,7 @@ public class Tool {
 
 		if (number == null) {
 			System.out.println(text);
-			number = sysInput.readLine();
+			number = getSystemIn().readLine();
 		}
 
 		return number;
@@ -186,21 +166,14 @@ public class Tool {
 
 		if (t == null) {
 			System.out.println(TEXT);
-			t = sysInput.readLine();
+			t = getSystemIn().readLine();
 		}
 
 		return t;
 	}
 
 	public static String serviceNumer(String[] args) throws IOException {
-		String s = existParameterWithValue(args, "-s");
-
-		// if (s == null) {
-		// System.out.println(SERVECE);
-		// s = sysInput.readLine();
-		// }
-
-		return s;
+		return existParameterWithValue(args, "-s");
 	}
 
 	public static boolean skipCall(String[] args) {
@@ -226,7 +199,7 @@ public class Tool {
 				try {
 					boudrate[ii] = Integer.parseInt(boundArr[ii].trim());
 				} catch (NumberFormatException e) {
-					System.err.println(boundArr[ii].trim() + " is not valid number. Exit");
+					System.err.println("'" + boundArr[ii].trim() + "' is not valid number. Exit");
 					System.exit(1);
 				}
 			}
@@ -258,5 +231,27 @@ public class Tool {
 		builder.add(builder.newRootLogger(Level.INFO).add(builder.newAppenderRef("file")));
 
 		return Configurator.initialize(builder.build());
+	}
+
+	private static String existParameterWithValue(String[] args, String param) {
+		for (int i = 0; i < args.length; i++) {
+			if (args[i].equals(param) && i + 1 < args.length) {
+				return args[i + 1];
+			}
+		}
+		return null;
+	}
+
+	private static boolean existParameter(String[] args, String param) {
+		for (int i = 0; i < args.length; i++) {
+			if (args[i].equals(param)) {
+				return true;
+			}
+		}
+		return false;
+	}
+
+	private static BufferedReader getSystemIn() {
+		return new BufferedReader(new InputStreamReader(System.in));
 	}
 }

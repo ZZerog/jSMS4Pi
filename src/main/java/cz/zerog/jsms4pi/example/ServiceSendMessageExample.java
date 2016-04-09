@@ -2,6 +2,8 @@ package cz.zerog.jsms4pi.example;
 
 import java.io.IOException;
 
+import cz.zerog.jsms4pi.SerialModem;
+
 /*
  * #%L
  * jSMS4Pi
@@ -84,7 +86,7 @@ public class ServiceSendMessageExample {
 
 		Tool.showVersion(args, VERSION);
 
-		String port = Tool.selectionPort(args);
+		String port = Tool.selectionPort(args, SerialModem.getAvailablePorts());
 		String destination = Tool.destNumber(args);
 		String text = Tool.text(args);
 

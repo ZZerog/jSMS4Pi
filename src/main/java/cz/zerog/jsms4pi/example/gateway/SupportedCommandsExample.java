@@ -23,6 +23,7 @@ package cz.zerog.jsms4pi.example.gateway;
  */
 import cz.zerog.jsms4pi.ATGateway;
 import cz.zerog.jsms4pi.Gateway;
+import cz.zerog.jsms4pi.SerialModem;
 import cz.zerog.jsms4pi.at.CLAC;
 import cz.zerog.jsms4pi.example.Tool;
 import cz.zerog.jsms4pi.exception.GatewayException;
@@ -78,8 +79,7 @@ public class SupportedCommandsExample {
 				String.format("Parameters:%n -p <port name> name of a serial port%n -h show this information%n%n"
 						+ "Interactive mode is activated when starting the program without parameters"));
 
-		String port = Tool.selectionPort(args);
-
+		String port = Tool.selectionPort(args, SerialModem.getAvailablePorts());
 		System.out.println(String.format("%n--- Summary ---"));
 		System.out.println("Serial port: " + port);
 

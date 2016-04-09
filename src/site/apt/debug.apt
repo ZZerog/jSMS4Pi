@@ -4,7 +4,7 @@
             
 Debugging            
 
-	If you have a problem with a Modem and you can see communication between jSMS4Pi and the Modem, you must enable logging. jSMS4Pi use {{{http://logging.apache.org/log4j/2.x/}Log4j 2}}, so the easiest way is to add a log4j2.xml file into the classpath. Sample log4j2.xml on GitHub generated jSMS4Pi.log file similar this: 
+	If you have a problem with a Modem and you can see communication between jSMS4Pi and the Modem, you must enable logging. jSMS4Pi use {{{Log4j 2}http://logging.apache.org/log4j/2.x/}}, so the easiest way is to add a {{{http://github.com/ZZerog/jSMS4Pi/blob/master/log4j2.xml}log4j2.xml}} file into the classpath. Sample {{{log4j2.xml}http://github.com/ZZerog/jSMS4Pi/blob/master/log4j2.xml}} on GitHub generated jSMS4Pi.log file similar this: 
 
 +-------------------
 2016-04-08 19:39:40,499 main INFO  jsms4pi.SerialModem - Request: AT<R>

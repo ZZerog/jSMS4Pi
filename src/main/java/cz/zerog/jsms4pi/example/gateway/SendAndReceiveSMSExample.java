@@ -25,6 +25,7 @@ import java.io.IOException;
  */
 import cz.zerog.jsms4pi.ATGateway;
 import cz.zerog.jsms4pi.Gateway;
+import cz.zerog.jsms4pi.SerialModem;
 import cz.zerog.jsms4pi.example.Tool;
 import cz.zerog.jsms4pi.exception.AtParseException;
 import cz.zerog.jsms4pi.exception.GatewayException;
@@ -145,7 +146,7 @@ public class SendAndReceiveSMSExample implements OutboundMessageGatewayListener,
 						+ "-d <number> destination number%n -s <number> service number -t <text> text of message%n%n"
 						+ "Interactive mode is activated when starting the program without parameters"));
 
-		String port = Tool.selectionPort(args);
+		String port = Tool.selectionPort(args, SerialModem.getAvailablePorts());
 		String number = Tool.destNumber(args);
 		String text = Tool.text(args);
 		String serviceNum = Tool.serviceNumer(args);
