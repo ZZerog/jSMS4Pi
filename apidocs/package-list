@@ -7,6 +7,5 @@ cz.zerog.jsms4pi.listener
 cz.zerog.jsms4pi.listener.event
 cz.zerog.jsms4pi.listener.gateway
 cz.zerog.jsms4pi.message
-cz.zerog.jsms4pi.nogit
 cz.zerog.jsms4pi.notification
 cz.zerog.jsms4pi.tool
