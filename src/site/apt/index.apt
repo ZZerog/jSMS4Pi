@@ -46,6 +46,8 @@ jSMS4Pi
 
 * News
 
+	*	2016-09-06 :: Timezone bug was fixed
+
 	*	2016-04-07 :: Content of {{{./tool.html}Tool page}} added
 	
 	*	2016-04-06 :: Huawei - E3372 modem distributed by CZ T-mobile tested {{{./modems.html}Tested Modems}}
