@@ -22,13 +22,15 @@ package cz.zerog.jsms4pi.notification;
  * #L%
  */
 
-
 import static cz.zerog.jsms4pi.tool.PatternTool.*;
-import cz.zerog.jsms4pi.tool.PhoneType;
-import cz.zerog.jsms4pi.tool.SPStatus;
-import java.time.LocalDateTime;
+
+import java.time.OffsetDateTime;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+
+import cz.zerog.jsms4pi.tool.PatternTool;
+import cz.zerog.jsms4pi.tool.PhoneType;
+import cz.zerog.jsms4pi.tool.SPStatus;
 
 /**
  * SMS status notification
@@ -37,79 +39,79 @@ import java.util.regex.Pattern;
  */
 public final class CDS implements Notification {
 
-    private final static Pattern pattern = Pattern.compile(build("\\+CDS: *({}),({}),\"({})\",({}),\"({})\",\"({})\",({})",
-            NUMBER,      //fo
-            NUMBER,      //mr
-            PHONE_NUMBER,//ra
-            PHONE_TYPE,  //tora
-            TIME_STAMP,  //scts
-            TIME_STAMP,  //dt
-            NUMBER));    //st (status)
+	private final static Pattern pattern = Pattern
+			.compile(build("\\+CDS: *({}),({}),\"({})\",({}),\"({})\",\"({})\",({})", NUMBER, // fo
+					NUMBER, // mr
+					PHONE_NUMBER, // ra
+					PHONE_TYPE, // tora
+					TIME_STAMP, // scts
+					TIME_STAMP, // dt
+					NUMBER)); // st (status)
 
-    private final int fo;
-    private final int mr;
-    private final String ra;
-    private final PhoneType tora;
-    private final LocalDateTime scts, dt;
-    private final SPStatus status;
-    
-    private final String response;
-    
-    public CDS(Matcher matcher, String response) {
-        fo = Integer.valueOf(matcher.group(1));
-        mr = Integer.valueOf(matcher.group(2));
-        ra = matcher.group(3);
-        tora =PhoneType.valueOf(Integer.parseInt(matcher.group(4)));
-        scts = LocalDateTime.parse(matcher.group(5), TIME_STAMP_FORMATTER);
-        dt = LocalDateTime.parse(matcher.group(6), TIME_STAMP_FORMATTER);
-        status = SPStatus.valueOf(Integer.parseInt(matcher.group(7)));
-        this.response = response;
-    }
+	private final int fo;
+	private final int mr;
+	private final String ra;
+	private final PhoneType tora;
+	private final OffsetDateTime scts, dt;
+	private final SPStatus status;
 
-    public static CDS tryParse(String notification, UnknownNotifications notifications) {
-        Matcher matcher = pattern.matcher(notification);
-        
-        if (matcher.matches()) {
-            return new CDS(matcher, notification);
-        }
-        //throw new AtParseException(notification, pattern);
-        return null;
-    }
+	private final String response;
 
-    public static Pattern getPattern() {
-        return pattern;
-    }
+	public CDS(Matcher matcher, String response) {
+		fo = Integer.valueOf(matcher.group(1));
+		mr = Integer.valueOf(matcher.group(2));
+		ra = matcher.group(3);
+		tora = PhoneType.valueOf(Integer.parseInt(matcher.group(4)));
+		scts = PatternTool.getOffsetDateTime(matcher.group(5));
+		dt = PatternTool.getOffsetDateTime(matcher.group(6));
+		status = SPStatus.valueOf(Integer.parseInt(matcher.group(7)));
+		this.response = response;
+	}
 
-    public int getFo() {
-        return fo;
-    }
+	public static CDS tryParse(String notification, UnknownNotifications notifications) {
+		Matcher matcher = pattern.matcher(notification);
 
-    public int getMr() {
-        return mr;
-    }
+		if (matcher.matches()) {
+			return new CDS(matcher, notification);
+		}
+		// throw new AtParseException(notification, pattern);
+		return null;
+	}
 
-    public String getRa() {
-        return ra;
-    }
+	public static Pattern getPattern() {
+		return pattern;
+	}
 
-    public PhoneType getTora() {
-        return tora;
-    }
+	public int getFo() {
+		return fo;
+	}
 
-    public LocalDateTime getScts() {
-        return scts;
-    }
+	public int getMr() {
+		return mr;
+	}
 
-    public LocalDateTime getDt() {
-        return dt;
-    }
+	public String getRa() {
+		return ra;
+	}
 
-    public SPStatus getStatus() {
-        return status;
-    }
+	public PhoneType getTora() {
+		return tora;
+	}
 
-    @Override
-    public String getResponse() {
-        return response;
-    }
+	public OffsetDateTime getScts() {
+		return scts;
+	}
+
+	public OffsetDateTime getDt() {
+		return dt;
+	}
+
+	public SPStatus getStatus() {
+		return status;
+	}
+
+	@Override
+	public String getResponse() {
+		return response;
+	}
 }

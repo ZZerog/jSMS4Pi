@@ -22,11 +22,13 @@ package cz.zerog.jsms4pi.notification;
  * #L%
  */
 
-
 import static cz.zerog.jsms4pi.tool.PatternTool.*;
-import java.time.LocalDateTime;
+
+import java.time.OffsetDateTime;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+
+import cz.zerog.jsms4pi.tool.PatternTool;
 
 /**
  * SMS status notification
@@ -35,52 +37,51 @@ import java.util.regex.Pattern;
  */
 public final class CMT implements Notification {
 
-    private final static Pattern pattern = Pattern.compile(build("\\+CMT: *\"({})\",({}),\"({})\"",
-            PHONE_NUMBER, //oa
-            WHATEVER,     //alpha  
-            TIME_STAMP)); //scts
+	private final static Pattern pattern = Pattern.compile(build("\\+CMT: *\"({})\",({}),\"({})\"", PHONE_NUMBER, // oa
+			WHATEVER, // alpha
+			TIME_STAMP)); // scts
 
-    private final String oa; //source phone number
-    private final String alpha; //if oa is in phone book
-    private final LocalDateTime scts; //
-    private final String data; //text
-    
-    private final String response;
-    
-    public CMT(Matcher matcher, String response, String text) {
-        oa = matcher.group(1);
-        alpha = matcher.group(2);
-        scts = LocalDateTime.parse(matcher.group(3), TIME_STAMP_FORMATTER);
-        data = text;
-        this.response = response+"\r\n"+text;
-    }
+	private final String oa; // source phone number
+	private final String alpha; // if oa is in phone book
+	private final OffsetDateTime scts; //
+	private final String data; // text
 
-    public static CMT tryParse(String notification, UnknownNotifications notifications) {
-        Matcher matcher = pattern.matcher(notification);
-        if (matcher.matches()) {
-            return new CMT(matcher, notification, notifications.getNextMessage());
-        }
-        return null;
-    }
+	private final String response;
 
-    @Override
-    public String getResponse() {
-        return response;
-    }
-    
-    public String getOa() {
-        return oa;
-    }
-    
-    public String getAlpha() {
-        return alpha;
-    }
-    
-    public LocalDateTime getScts() {
-        return scts;
-    }
-    
-    public String getData() {
-        return data;
-    }
+	public CMT(Matcher matcher, String response, String text) {
+		oa = matcher.group(1);
+		alpha = matcher.group(2);
+		scts = PatternTool.getOffsetDateTime(matcher.group(3));
+		data = text;
+		this.response = response + "\r\n" + text;
+	}
+
+	public static CMT tryParse(String notification, UnknownNotifications notifications) {
+		Matcher matcher = pattern.matcher(notification);
+		if (matcher.matches()) {
+			return new CMT(matcher, notification, notifications.getNextMessage());
+		}
+		return null;
+	}
+
+	@Override
+	public String getResponse() {
+		return response;
+	}
+
+	public String getOa() {
+		return oa;
+	}
+
+	public String getAlpha() {
+		return alpha;
+	}
+
+	public OffsetDateTime getScts() {
+		return scts;
+	}
+
+	public String getData() {
+		return data;
+	}
 }

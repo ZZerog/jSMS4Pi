@@ -1,16 +1,8 @@
 package cz.zerog.jsms4pi.at;
 
-import static cz.zerog.jsms4pi.tool.PatternTool.CR_LF;
-import static cz.zerog.jsms4pi.tool.PatternTool.NUMBER;
-import static cz.zerog.jsms4pi.tool.PatternTool.PHONE_NUMBER;
-import static cz.zerog.jsms4pi.tool.PatternTool.PHONE_TYPE;
-import static cz.zerog.jsms4pi.tool.PatternTool.STAT;
-import static cz.zerog.jsms4pi.tool.PatternTool.TIME_STAMP;
-import static cz.zerog.jsms4pi.tool.PatternTool.TIME_STAMP_FORMATTER;
-import static cz.zerog.jsms4pi.tool.PatternTool.WHATEVER;
-import static cz.zerog.jsms4pi.tool.PatternTool.build;
+import static cz.zerog.jsms4pi.tool.PatternTool.*;
 
-import java.time.LocalDateTime;
+import java.time.OffsetDateTime;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -36,6 +28,7 @@ import java.util.regex.Pattern;
  * #L%
  */
 import cz.zerog.jsms4pi.exception.AtParseException;
+import cz.zerog.jsms4pi.tool.PatternTool;
 import cz.zerog.jsms4pi.tool.SPStatus;
 
 /**
@@ -79,8 +72,8 @@ public class CMGR extends AAT {
 	private int mr = -1;
 	private String ra;
 	private int tora = -1;
-	private LocalDateTime scts;
-	private LocalDateTime dt;
+	private OffsetDateTime scts;
+	private OffsetDateTime dt;
 	private SPStatus sp;
 	private String text;
 
@@ -120,8 +113,8 @@ public class CMGR extends AAT {
 			mr = Integer.parseInt(matcher.group(3));
 			ra = matcher.group(4);
 			tora = Integer.parseInt(matcher.group(5));
-			scts = LocalDateTime.parse(matcher.group(6), TIME_STAMP_FORMATTER);
-			dt = LocalDateTime.parse(matcher.group(7), TIME_STAMP_FORMATTER);
+			scts = PatternTool.getOffsetDateTime(matcher.group(6));
+			dt = PatternTool.getOffsetDateTime(matcher.group(7));
 			sp = SPStatus.valueOf(Integer.parseInt(matcher.group(8)));
 			break;
 		case SMS_DELIVERY:
@@ -132,7 +125,9 @@ public class CMGR extends AAT {
 			stat = matcher.group(1);
 			oa = matcher.group(2);
 			alpha = matcher.group(3);
-			scts = LocalDateTime.parse(matcher.group(4), TIME_STAMP_FORMATTER);
+			scts = PatternTool.getOffsetDateTime(matcher.group(4));
+			// scts = PatternTool.getOffsetDateTime(matcher.group(4),
+			// TIME_STAMP_FORMATTER);
 			text = matcher.group(5);
 			break;
 		}
@@ -172,11 +167,11 @@ public class CMGR extends AAT {
 		return tora;
 	}
 
-	public LocalDateTime getScts() {
+	public OffsetDateTime getScts() {
 		return scts;
 	}
 
-	public LocalDateTime getDt() {
+	public OffsetDateTime getDt() {
 		return dt;
 	}
 

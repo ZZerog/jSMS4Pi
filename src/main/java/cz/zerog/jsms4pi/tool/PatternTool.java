@@ -1,5 +1,6 @@
 package cz.zerog.jsms4pi.tool;
 
+import java.time.OffsetDateTime;
 import java.time.format.DateTimeFormatter;
 
 /*
@@ -30,62 +31,77 @@ import java.time.format.DateTimeFormatter;
  */
 public class PatternTool {
 
-    private PatternTool() {
-    }
-    
-    public static final DateTimeFormatter TIME_STAMP_FORMATTER = DateTimeFormatter.ofPattern("yy/MM/dd,HH:mm:ssx");
+	private PatternTool() {
+	}
 
-    /**
-     * Phone number in format +420731810967 or 731810967
-     */
-    public static final String PHONE_NUMBER = "\\+?\\d+";
-    
-    public static final String PHONE_TYPE = "145|129";
-    
-    public static final String TIME_STAMP = "\\d{2}/\\d{2}/\\d{2},\\d{2}:\\d{2}:\\d{2}[\\+\\-]\\d{2}";
-    
-    public static final String STAT = "REC UNREAD|REC READ|STO UNSENT|STO SENT|ALL";
-    
-    public static final String WHATEVER = ".*";
-    
-    public static final String CR_LF = "\\r\\n";
-    
-    
-    /**
-     * Positive integer number
-     */
-    public static final String NUMBER = "\\d+";
-    
-    /**
-     * Type of memory
-     * 
-     * "BM" broadcast message storage
-     * "ME" ME message storage
-     * "MT" any of the storages associated with ME
-     * "SM" (U)SIM message storage
-     * "TA" TA message storage
-     * "SR" status report storage 
-     */
-    public static final String MEMORY = "BM|ME|MT|SM|TA|SR";    
+	public static final DateTimeFormatter TIME_STAMP_FORMATTER = DateTimeFormatter.ofPattern("yy/MM/dd,HH:mm:ssx");
 
-    
-    public static String build(String pattern, String... args) {
+	/**
+	 * Phone number in format +420731810967 or 731810967
+	 */
+	public static final String PHONE_NUMBER = "\\+?\\d+";
 
-        StringBuilder sb = new StringBuilder();
+	public static final String PHONE_TYPE = "145|129";
 
-        int lastIndex = 0;
-        for (String arg : args) {
-            int index = pattern.indexOf("{}",lastIndex);
-            if (index >= 0) {
-                sb.append(pattern.substring(lastIndex, index));
-                sb.append(arg);
-                lastIndex = index + 2;
-            }
-        }
-        sb.append(pattern.substring(lastIndex, pattern.length()));
-        return sb.toString();
-    }
-    
-    
-    
+	public static final String TIME_STAMP = "\\d{2}/\\d{2}/\\d{2},\\d{2}:\\d{2}:\\d{2}[\\+\\-]\\d{2}";
+
+	public static final String STAT = "REC UNREAD|REC READ|STO UNSENT|STO SENT|ALL";
+
+	public static final String WHATEVER = ".*";
+
+	public static final String CR_LF = "\\r\\n";
+
+	/**
+	 * Positive integer number
+	 */
+	public static final String NUMBER = "\\d+";
+
+	/**
+	 * Type of memory
+	 * 
+	 * "BM" broadcast message storage "ME" ME message storage "MT" any of the
+	 * storages associated with ME "SM" (U)SIM message storage "TA" TA message
+	 * storage "SR" status report storage
+	 */
+	public static final String MEMORY = "BM|ME|MT|SM|TA|SR";
+
+	public static String build(String pattern, String... args) {
+
+		StringBuilder sb = new StringBuilder();
+
+		int lastIndex = 0;
+		for (String arg : args) {
+			int index = pattern.indexOf("{}", lastIndex);
+			if (index >= 0) {
+				sb.append(pattern.substring(lastIndex, index));
+				sb.append(arg);
+				lastIndex = index + 2;
+			}
+		}
+		sb.append(pattern.substring(lastIndex, pattern.length()));
+		return sb.toString();
+	}
+
+	/**
+	 * Calculate time returned by the modem to OffsetDateTime.
+	 * 
+	 * Modem return timeZone as count of quarter an hour.
+	 * 
+	 * @param time
+	 * @return
+	 */
+	public static OffsetDateTime getOffsetDateTime(String time) {
+
+		int timeLen = time.length();
+		String quarter = time.substring(timeLen - 2, timeLen);
+
+		int hour = Integer.parseInt(quarter) / 4;
+		int minute = (Integer.parseInt(quarter) % 4) * 15;
+
+		StringBuilder sb = new StringBuilder(timeLen + 2);
+		sb.append(time.substring(0, timeLen - 2)).append(String.format("%02d", hour))
+				.append(String.format("%02d", minute));
+
+		return OffsetDateTime.parse(sb.toString(), TIME_STAMP_FORMATTER);
+	}
 }
