@@ -46,7 +46,7 @@ jSMS4Pi
 
 * News
 
-	*	2016-09-06 :: Timezone bug was fixed
+	*	2016-09-06 :: Timezone bug was fixed (release 1.0.1-SNAPSHOT)
 
 	*	2016-04-07 :: Content of {{{./tool.html}Tool page}} added
 	
@@ -55,6 +55,11 @@ jSMS4Pi
 	*	2016-03-20 :: 'USAGE' section added 
 	
 * Releases
+
+
+	2016-09-06 :: 1.0.1-SNAPSHOT
+ 	
+ 	*  fixed bug - timezone
 
 	2015-09-05 :: 1.0.0-SNAPSHOT
  	

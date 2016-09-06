@@ -4,7 +4,7 @@
     <groupId>cz.zerog</groupId>
     <artifactId>jSMS4Pi</artifactId>
     <packaging>jar</packaging>
-    <version>1.0-SNAPSHOT</version>
+    <version>1.0.1-SNAPSHOT</version>
     <name>jSMS4Pi</name>
     <url></url>
     <inceptionYear>2015</inceptionYear>
